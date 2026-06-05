@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Notification Mail</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#f4f6f9;
+            padding:20px;
+        }
+
+        .container{
+            background:white;
+            max-width:800px;
+            margin:auto;
+            padding:25px;
+            border-radius:10px;
+        }
+
+        .form-group{
+            margin-bottom:15px;
+        }
+
+        label{
+            display:block;
+            margin-bottom:5px;
+            font-weight:bold;
+        }
+
+        select,input,textarea{
+            width:100%;
+            padding:10px;
+            border:1px solid #ccc;
+            border-radius:5px;
+            box-sizing:border-box;
+        }
+
+        textarea{
+            height:150px;
+        }
+
+        button{
+            background:#2c3e50;
+            color:white;
+            padding:12px 20px;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+@media screen and (max-width:768px){
+
+    .filters{
+        flex-direction:column;
+    }
+
+    select,
+    input,
+    button{
+        width:100%;
+    }
+
+    table{
+        font-size:14px;
+    }
+
+    th,td{
+        padding:8px;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Send Exam Notification</h2>
+
+    <div class="form-group">
+        <label>Academic Year</label>
+
+        <select id="academicYear">
+
+            <option value="">
+                Select Academic Year
+            </option>
+
+            {% for year in academic_years %}
+            <option value="{{ year }}">
+                {{ year }}
+            </option>
+            {% endfor %}
+
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Grade</label>
+
+        <select id="grade">
+
+            <option value="">Select Grade</option>
+
+            <option value="A">Grade A</option>
+            <option value="B">Grade B</option>
+            <option value="C">Grade C</option>
+            <option value="D">Grade D</option>
+            <option value="E">Grade E</option>
+
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Exam Date</label>
+
+        <input
+            type="date"
+            id="examDate"
+        >
+    </div>
+
+    <div class="form-group">
+        <label>Exam Time</label>
+
+        <input
+            type="time"
+            id="examTime"
+        >
+    </div>
+
+    <div class="form-group">
+
+        <label>Mail Subject</label>
+
+        <input
+            type="text"
+            id="subject"
+            placeholder="Enter Subject"
+        >
+
+    </div>
+
+    <div class="form-group">
+
+        <label>Message</label>
+
+        <textarea
+            id="message"
+            placeholder="Type Message"
+        ></textarea>
+
+    </div>
+
+    <button onclick="sendMail()">
+        Send Mail
+    </button>
+
+</div>
+
+<script>
+
+function sendMail(){
+
+    let academicYear =
+        document.getElementById("academicYear").value;
+
+    let grade =
+        document.getElementById("grade").value;
+
+    let examDate =
+        document.getElementById("examDate").value;
+
+    let examTime =
+        document.getElementById("examTime").value;
+
+    let subject =
+        document.getElementById("subject").value;
+
+    let message =
+        document.getElementById("message").value;
+
+    if(
+        !academicYear ||
+        !grade ||
+        !examDate ||
+        !examTime ||
+        !subject ||
+        !message
+    ){
+        alert("Please fill all fields");
+        return;
+    }
+
+    fetch("/send-grade-mail/",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            academic_year:academicYear,
+            grade:grade,
+            exam_date:examDate,
+            exam_time:examTime,
+            subject:subject,
+            message:message
+
+        })
+
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        alert(
+            "Mail sent to " +
+            data.count +
+            " students"
+        );
+
+        document.getElementById("academicYear").value = "";
+        document.getElementById("grade").value = "";
+        document.getElementById("examDate").value = "";
+        document.getElementById("examTime").value = "";
+        document.getElementById("subject").value = "";
+        document.getElementById("message").value = "";
+
+    })
+
+}
+
+</script>
+
+</body>
+</html>

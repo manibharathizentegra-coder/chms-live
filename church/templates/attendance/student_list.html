@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Attendance</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#f4f6f9;
+            padding:20px;
+        }
+
+        .container{
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            max-width:1200px;
+            margin:auto;
+        }
+
+        h2{
+            margin-bottom:20px;
+        }
+
+        .filters{
+            display:flex;
+            gap:15px;
+            margin-bottom:20px;
+        }
+
+        select,
+        input[type=date]{
+            padding:10px;
+            border:1px solid #ccc;
+            border-radius:5px;
+        }
+
+        button{
+            padding:10px 20px;
+            background:#2c3e50;
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            background:white;
+        }
+
+        th{
+            background:#2c3e50;
+            color:white;
+            padding:12px;
+        }
+
+        td{
+            padding:10px;
+            border:1px solid #ddd;
+        }
+
+        .present{
+            background:green;
+            color:white;
+            border:none;
+            padding:6px 12px;
+            border-radius:5px;
+        }
+
+        .absent{
+            background:red;
+            color:white;
+            border:none;
+            padding:6px 12px;
+            border-radius:5px;
+        }
+
+@media screen and (max-width:768px){
+
+    .filters{
+        flex-direction:column;
+    }
+
+    select,
+    input,
+    button{
+        width:100%;
+    }
+
+    table{
+        font-size:14px;
+    }
+
+    th,td{
+        padding:8px;
+    }
+}
+
+    </style>
+
+</head>
+<body>
+
+<div class="container">
+
+    <h2>Student Attendance</h2>
+
+    <div class="filters">
+
+        <!-- Academic Year -->
+        <select id="academicYear">
+            <option value="">Academic Year</option>
+
+            {% for year in academic_years %}
+                <option value="{{ year }}">
+                    {{ year }}
+                </option>
+            {% endfor %}
+        </select>
+
+        <!-- Grade -->
+        <select id="gradeFilter">
+            <option value="">Select Grade</option>
+            <option value="A">Grade A</option>
+            <option value="B">Grade B</option>
+            <option value="C">Grade C</option>
+            <option value="D">Grade D</option>
+            <option value="E">Grade E</option>
+        </select>
+
+        <!-- Calendar -->
+        <input type="date" id="attendanceDate">
+
+        <button onclick="filterStudents()">
+            Filter
+        </button>
+
+    </div>
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>Student Name</th>
+                <th>Grade</th>
+                <th>Parent Name</th>
+                <th>Email</th>
+                <th>Attendance</th>
+            </tr>
+
+        </thead>
+
+        <tbody id="studentTable">
+
+        {% for student in students %}
+
+            <tr
+                data-grade="{{ student.Class_Grade }}"
+                data-year="{{ student.Academic_Year }}"
+                data-student="{{ student.Student_Name.zc_display_value }}"
+            >
+
+                <td>
+                    {{ student.Student_Name.zc_display_value }}
+                </td>
+
+                <td>
+                    {{ student.Class_Grade }}
+                    
+                </td>
+
+                <td>
+                    {{ student.Parent_Name.zc_display_value }}
+                </td>
+
+                <td>
+                    {{ student.Student_Email }}
+                </td>
+
+                <td>
+                    <button
+                        class="present"
+                        onclick="markAttendance(this,'Present')">
+                        Present
+                    </button>
+
+                    <button
+                        class="absent"
+                        onclick="markAttendance(this,'Absent')">
+                        Absent
+                    </button>
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+function filterStudents(){
+
+    let selectedGrade =
+        document.getElementById("gradeFilter").value;
+
+    let selectedYear =
+        document.getElementById("academicYear").value;
+
+    let selectedDate =
+        document.getElementById("attendanceDate").value;
+
+    let rows =
+        document.querySelectorAll("#studentTable tr");
+
+    rows.forEach(function(row){
+
+        let grade =
+            row.getAttribute("data-grade");
+
+        let year =
+            row.getAttribute("data-year");
+
+        let gradeMatch =
+            selectedGrade === "" ||
+            grade === selectedGrade;
+
+        let yearMatch =
+            selectedYear === "" ||
+            year === selectedYear;
+
+        if(gradeMatch && yearMatch){
+            row.style.display = "";
+        }
+        else{
+            row.style.display = "none";
+        }
+
+    });
+
+    console.log("Selected Grade =", selectedGrade);
+    console.log("Selected Academic Year =", selectedYear);
+    console.log("Selected Date =", selectedDate);
+
+}
+
+
+function markAttendance(button,status){
+
+    let row = button.closest("tr");
+
+    let studentName =
+        row.getAttribute("data-student");
+
+    let grade =
+        row.getAttribute("data-grade");
+
+    let academicYear =
+        row.getAttribute("data-year");
+
+    let attendanceDate =
+        document.getElementById("attendanceDate").value;
+
+    if(!attendanceDate){
+
+        alert("Please select a date");
+
+        return;
+    }
+
+    fetch("/save-attendance/",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+            student_name:studentName,
+            academic_year:academicYear,
+            class_grade:grade,
+            date:attendanceDate,
+            status:status
+
+        })
+
+    })
+
+    .then(response=>response.json())
+
+    .then(data=>{
+
+        console.log(data);
+
+        alert(
+            studentName +
+            " marked as " +
+            status
+        );
+
+    })
+
+    .catch(error=>{
+
+        console.error(error);
+
+        alert("Error saving attendance");
+
+    });
+
+}
+
+</script>
+
+</body>
+</html>

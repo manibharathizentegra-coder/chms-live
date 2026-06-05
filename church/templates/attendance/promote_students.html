@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Promote Students</title>
+
+<style>
+
+body{
+    font-family:Arial;
+    background:#f4f6f9;
+    padding:20px;
+}
+
+.container{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+}
+
+th,td{
+    border:1px solid #ddd;
+    padding:10px;
+}
+
+th{
+    background:#2c3e50;
+    color:white;
+}
+
+.promote{
+    background:green;
+    color:white;
+    border:none;
+    padding:8px 15px;
+}
+
+.stay{
+    background:red;
+    color:white;
+    border:none;
+    padding:8px 15px;
+}
+
+@media screen and (max-width:768px){
+
+    .filters{
+        flex-direction:column;
+    }
+
+    select,
+    input,
+    button{
+        width:100%;
+    }
+
+    table{
+        font-size:14px;
+    }
+
+    th,td{
+        padding:8px;
+    }
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Promote Students</h2>
+
+<select id="academicYear">
+
+<option value="">
+Academic Year
+</option>
+
+{% for year in academic_years %}
+
+<option value="{{ year }}">
+{{ year }}
+</option>
+
+{% endfor %}
+
+</select>
+
+<select id="gradeFilter">
+
+<option value="">
+Grade
+</option>
+
+<option value="A">A</option>
+<option value="B">B</option>
+<option value="C">C</option>
+<option value="D">D</option>
+<option value="E">E</option>
+
+</select>
+
+<button onclick="filterStudents()">
+Filter
+</button>
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Student Name</th>
+<th>Grade</th>
+<th>Action</th>
+
+</tr>
+
+</thead>
+
+<tbody id="studentTable">
+
+{% for student in students %}
+
+<tr
+data-id="{{ student.ID }}"
+data-grade="{{ student.Class_Grade }}"
+data-year="{{ student.Academic_Year }}"
+data-student="{{ student.Student_Name.zc_display_value }}"
+>
+
+<td>
+{{ student.Student_Name.zc_display_value }}
+</td>
+
+<td>
+{{ student.Class_Grade }}
+</td>
+
+<td>
+
+<button
+class="promote"
+onclick="savePromotion(this,'Promoted')"
+>
+Promote
+</button>
+
+<button
+class="stay"
+onclick="savePromotion(this,'Stay')"
+>
+Stay
+</button>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
+
+<script>
+
+function filterStudents(){
+
+    let grade =
+        document.getElementById(
+            "gradeFilter"
+        ).value;
+
+    let year =
+        document.getElementById(
+            "academicYear"
+        ).value;
+
+    let rows =
+        document.querySelectorAll(
+            "#studentTable tr"
+        );
+
+    rows.forEach(function(row){
+
+        let g =
+            row.getAttribute(
+                "data-grade"
+            );
+
+        let y =
+            row.getAttribute(
+                "data-year"
+            );
+
+        if(
+            g == grade &&
+            y == year
+        ){
+            row.style.display="";
+        }
+
+        else{
+            row.style.display="none";
+        }
+
+    });
+
+}
+
+function savePromotion(button,status){
+
+    let row = button.closest("tr");
+
+    let currentGrade =
+        row.getAttribute("data-grade");
+
+    let nextGrade = currentGrade;
+
+    if(status === "Promoted"){
+
+        if(currentGrade === "A"){
+            nextGrade = "B";
+        }
+        else if(currentGrade === "B"){
+            nextGrade = "C";
+        }
+        else if(currentGrade === "C"){
+            nextGrade = "D";
+        }
+        else if(currentGrade === "D"){
+            nextGrade = "E";
+        }
+        else if(currentGrade === "E"){
+            nextGrade = "Completed";
+        }
+
+    }
+
+    fetch("/save-promotion/",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":"application/json"
+        },
+
+        body: JSON.stringify({
+
+            academic_year:
+                document.getElementById("academicYear").value,
+
+            class_grade:
+                document.getElementById("gradeFilter").value,
+
+            student_id:
+                row.getAttribute("data-id"),
+
+            student_name:
+                row.getAttribute("data-student"),
+
+            current_grade:
+                currentGrade,
+
+            promoted_to_grade:
+                nextGrade,
+
+            status:
+                status
+        })
+    })
+
+    .then(response => response.json())
+
+    .then(data => {
+
+        console.log(data);
+
+        alert("Saved Successfully");
+        location.reload();
+
+        let buttons =
+            row.querySelectorAll("button");
+
+        buttons.forEach(function(btn){
+
+            btn.disabled = true;
+
+        });
+
+    })
+
+    .catch(error => {
+
+        console.error(error);
+
+        alert("Error while saving");
+
+    });
+}
+
+</script>
+
+</body>
+</html>

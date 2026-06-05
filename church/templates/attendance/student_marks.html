@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Student Marks Entry</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#f4f6f9;
+            padding:20px;
+        }
+
+        .container{
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            max-width:1200px;
+            margin:auto;
+        }
+
+        h2{
+            margin-bottom:20px;
+        }
+
+        .filters{
+            display:flex;
+            gap:15px;
+            margin-bottom:20px;
+            flex-wrap:wrap;
+        }
+
+        select,
+        input[type=date]{
+            padding:10px;
+            border:1px solid #ccc;
+            border-radius:5px;
+        }
+
+        button{
+            padding:10px 20px;
+            background:#2c3e50;
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:20px;
+        }
+
+        th{
+            background:#2c3e50;
+            color:white;
+            padding:12px;
+        }
+
+        td{
+            padding:10px;
+            border:1px solid #ddd;
+        }
+
+        .markInput{
+            width:100px;
+            padding:8px;
+        }
+
+        .submit-btn{
+            margin-top:20px;
+            background:green;
+        }
+
+        #marksTable{
+            display:none;
+        }
+
+@media screen and (max-width:768px){
+
+    .filters{
+        flex-direction:column;
+    }
+
+    select,
+    input,
+    button{
+        width:100%;
+    }
+
+    table{
+        font-size:14px;
+    }
+
+    th,td{
+        padding:8px;
+    }
+}
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Student Marks Entry</h2>
+
+    <div class="filters">
+
+        <!-- Academic Year -->
+
+        <select id="academicYear">
+
+            <option value="">
+                Academic Year
+            </option>
+
+            {% for year in academic_years %}
+                <option value="{{ year }}">
+                    {{ year }}
+                </option>
+            {% endfor %}
+
+        </select>
+
+        <!-- Grade -->
+
+        <select id="gradeFilter">
+
+            <option value="">
+                Select Grade
+            </option>
+
+            <option value="A">Grade A</option>
+            <option value="B">Grade B</option>
+            <option value="C">Grade C</option>
+            <option value="D">Grade D</option>
+            <option value="E">Grade E</option>
+
+        </select>
+
+        <!-- Date -->
+
+        <input
+            type="date"
+            id="examDate"
+        >
+
+        <!-- Exam Type -->
+
+        <select
+            id="examType"
+            onchange="changeColumnName()"
+        >
+
+            <option value="">
+                Select Exam Type
+            </option>
+
+            <option value="Mid Term">
+                Mid Term
+            </option>
+
+            <option value="Annual">
+                Annual
+            </option>
+
+        </select>
+
+        <button onclick="filterStudents()">
+            Filter
+        </button>
+
+    </div>
+
+    <table id="marksTable">
+
+        <thead>
+
+            <tr>
+
+                <th>
+                    Student Name
+                </th>
+
+                <th>
+                    Grade
+                </th>
+
+                <th id="marksHeading">
+                    Marks
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="studentTable">
+
+        {% for student in students %}
+
+            <tr
+                data-grade="{{ student.Class_Grade }}"
+                data-year="{{ student.Academic_Year }}"
+                data-student="{{ student.Student_Name.zc_display_value }}"
+            >
+
+                <td>
+                    {{ student.Student_Name.zc_display_value }}
+                </td>
+
+                <td>
+                    {{ student.Class_Grade }}
+                </td>
+
+                <td>
+
+                    <input
+                        type="number"
+                        class="markInput"
+                        min="0"
+                        max="100"
+                        placeholder="Enter Marks"
+                    >
+
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <button
+        class="submit-btn"
+        onclick="submitMarks()"
+    >
+        Submit Marks
+    </button>
+
+</div>
+
+<script>
+
+function changeColumnName(){
+
+    let examType =
+        document.getElementById("examType").value;
+
+    let heading =
+        document.getElementById("marksHeading");
+
+    if(examType === "Mid Term"){
+
+        heading.innerHTML =
+            "Mid Term Marks";
+    }
+
+    else if(examType === "Annual"){
+
+        heading.innerHTML =
+            "Annual Marks";
+    }
+
+    else{
+
+        heading.innerHTML =
+            "Marks";
+    }
+}
+
+function filterStudents(){
+
+    document.getElementById(
+        "marksTable"
+    ).style.display = "table";
+
+    let selectedGrade =
+        document.getElementById("gradeFilter").value;
+
+    let selectedYear =
+        document.getElementById("academicYear").value;
+
+    let rows =
+        document.querySelectorAll("#studentTable tr");
+
+    rows.forEach(function(row){
+
+        let grade =
+            row.getAttribute("data-grade");
+
+        let year =
+            row.getAttribute("data-year");
+
+        let gradeMatch =
+            selectedGrade === "" ||
+            grade === selectedGrade;
+
+        let yearMatch =
+            selectedYear === "" ||
+            year === selectedYear;
+
+        if(gradeMatch && yearMatch){
+
+            row.style.display = "";
+
+        }else{
+
+            row.style.display = "none";
+
+        }
+
+    });
+
+}
+
+function submitMarks(){
+
+    let academicYear =
+        document.getElementById("academicYear").value;
+
+    let grade =
+        document.getElementById("gradeFilter").value;
+
+    let examDate =
+        document.getElementById("examDate").value;
+
+    let examType =
+        document.getElementById("examType").value;
+
+    if(
+        !academicYear ||
+        !grade ||
+        !examDate ||
+        !examType
+    ){
+
+        alert(
+            "Please select all filters"
+        );
+
+        return;
+    }
+
+    let rows =
+        document.querySelectorAll(
+            "#studentTable tr"
+        );
+
+    let markDetails = [];
+
+    rows.forEach(function(row){
+
+        if(
+            row.style.display === "none"
+        ){
+            return;
+        }
+
+        let studentName =
+            row.getAttribute("data-student");
+
+        let marks =
+            row.querySelector(".markInput").value;
+
+        if(marks){
+
+            let markRow = {
+
+                Student_Name:
+                    studentName,
+
+                Promote_Status:
+                    parseInt(marks) >= 35
+                    ? "Promoted"
+                    : "Failed"
+            };
+
+            if(
+                examType === "Mid Term"
+            ){
+
+                markRow.Mid_Term_Marks =
+                    marks;
+            }
+
+            else{
+
+                markRow.Annual_marks =
+                    marks;
+            }
+
+            markDetails.push(
+                markRow
+            );
+
+        }
+
+    });
+
+    fetch("/save-marks/",{
+
+        method:"POST",
+
+        headers:{
+            "Content-Type":
+            "application/json"
+        },
+
+        body:JSON.stringify({
+
+            academic_year:
+                academicYear,
+
+            class_grade:
+                grade,
+
+            exam_name:
+                examType,
+
+            date:
+                examDate,
+
+            mark_details:
+                markDetails
+
+        })
+
+    })
+
+    .then(data => {
+
+        console.log(data);
+
+        alert(
+            "Marks saved successfully"
+        );
+        location.reload()
+
+        // Clear marks boxes
+        document.querySelectorAll(".markInput")
+            .forEach(function(input){
+
+                input.value = "";
+
+            });
+
+        // Reset filters
+        document.getElementById("academicYear").value = "";
+        document.getElementById("gradeFilter").value = "";
+        document.getElementById("examDate").value = "";
+        document.getElementById("examType").value = "";
+
+        document.getElementById("marksHeading")
+            .innerHTML = "Marks";
+
+    })
+
+}
+
+</script>
+
+</body>
+</html>
