@@ -55,7 +55,7 @@ def send_sg_email(subject, message, to_emails, html_content=None):
         
     data = {
         "personalizations": personalizations,
-        "from": {"email": "manikandansjobzen@gmail.com"},
+        "from": {"email": "mani@zentegra.com"},
         "subject": subject,
         "content": [
             {"type": "text/plain", "value": message}
