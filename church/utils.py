@@ -34,31 +34,41 @@ def IntiateOauth():
         return  oauth.refresh_token
 
 
-def send_resend_email(subject, message, to_emails, html_content=None):
+def send_sg_email(subject, message, to_emails, html_content=None):
     import requests
-    import json
+    import os
     
-    api_key = "re_XCqBnfPS_8LkgEgd5jku98YP8GPY9wBpo"
-    url = "https://api.resend.com/emails"
+    api_key = os.environ.get("SENDGRID_API_KEY")
+    if not api_key:
+        print("SendGrid API Key not found in environment variables.")
+        return False
+
+    url = "https://api.sendgrid.com/v3/mail/send"
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
     
+    personalizations = []
+    for email in to_emails:
+        personalizations.append({"to": [{"email": email}]})
+        
     data = {
-        "from": "onboarding@resend.dev",
-        "to": to_emails,
+        "personalizations": personalizations,
+        "from": {"email": "manikandansjobzen@gmail.com"},
         "subject": subject,
-        "text": message
+        "content": [
+            {"type": "text/plain", "value": message}
+        ]
     }
     
     if html_content:
-        data["html"] = html_content
+        data["content"].insert(0, {"type": "text/html", "value": html_content})
         
     try:
         response = requests.post(url, json=data, headers=headers)
-        print("Resend API Response:", response.text)
-        return response.status_code == 200
+        print("SendGrid API Response:", response.status_code, response.text)
+        return response.status_code in [200, 202]
     except Exception as e:
-        print("Resend Error:", e)
+        print("SendGrid Error:", e)
         return False

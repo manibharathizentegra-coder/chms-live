@@ -11,7 +11,7 @@ import requests
 from .services import create_attendance_record
 from .services import create_marks_record
 from django.core.mail import send_mail
-from .utils import send_resend_email
+from .utils import send_sg_email
 from django.views.decorators.csrf import csrf_exempt
 from .services import create_promote_record
 from .services import create_promote_record, update_student_grade
@@ -322,7 +322,7 @@ def send_grade_mail(request):
                 }
             )
 
-            success = send_resend_email(
+            success = send_sg_email(
                 subject=subject,
                 message=final_message,
                 to_emails=[email_address],
@@ -532,7 +532,7 @@ def teacher_login(request):
         request.session["otp"] = otp
         request.session["email"] = email
 
-        send_resend_email(
+        send_sg_email(
             subject="Teacher Login OTP",
             message=f"Your OTP is {otp}",
             to_emails=[email]
@@ -838,7 +838,7 @@ Teacher
 
     if email_list:
 
-        send_resend_email(
+        send_sg_email(
             subject=subject,
             message=final_message,
             to_emails=email_list
