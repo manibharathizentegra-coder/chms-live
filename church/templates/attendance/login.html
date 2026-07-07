@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Login</title>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            background: #ffffff;
+        }
+
+        /* ============ LEFT PANEL ============ */
+        .left-panel {
+            flex: 1.1;
+            background: #f0f4ff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-shape-1 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(74,107,197,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -150px;
+            left: -150px;
+            z-index: 0;
+        }
+
+        .bg-shape-2 {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(255,107,107,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -100px;
+            right: -80px;
+            z-index: 0;
+        }
+
+        .bg-shape-3 {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(46,204,113,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            top: 30%;
+            right: 10%;
+            z-index: 0;
+        }
+
+        .illustration-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .illustration-wrapper svg {
+            width: 100%;
+            height: auto;
+            max-height: 520px;
+            filter: drop-shadow(0 20px 50px rgba(0,0,0,0.08));
+        }
+
+        /* ============ RIGHT PANEL ============ */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            padding: 40px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .login-card h2 {
+            font-size: 36px;
+            color: #1e2a4a;
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+
+        .login-card .subtitle {
+            color: #8d99ae;
+            font-size: 14px;
+            margin-bottom: 35px;
+        }
+
+        .login-card .subtitle a {
+            color: #4a6bc5;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .login-card .subtitle a:hover {
+            text-decoration: underline;
+        }
+
+        /* Error Message */
+        .error-box {
+            background: #fff5f5;
+            border-left: 4px solid #ff6b6b;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            color: #d63031;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: shake 0.5s ease;
+        }
+
+        .error-box i {
+            font-size: 18px;
+            color: #ff6b6b;
+        }
+
+        /* Input Group */
+        .input-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e2a4a;
+            margin-bottom: 8px;
+        }
+
+        .input-group i.field-icon {
+            position: absolute;
+            right: 16px;
+            top: 44px;
+            color: #a0aec0;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        .input-group input[type="email"] {
+            width: 100%;
+            padding: 15px 48px 15px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            color: #1e2a4a;
+        }
+
+        .input-group input[type="email"]::placeholder {
+            color: #b0bec5;
+        }
+
+        .input-group input[type="email"]:focus {
+            border-color: #4a6bc5;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(74, 107, 197, 0.1);
+        }
+
+        .input-group:focus-within i.field-icon {
+            color: #4a6bc5;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4a6bc5 0%, #3a5199 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(74, 107, 197, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(74, 107, 197, 0.5);
+        }
+
+        .btn-submit:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-submit i {
+            font-size: 15px;
+            transition: transform 0.3s;
+        }
+
+        .btn-submit:hover i {
+            transform: translateX(4px);
+        }
+
+        /* Footer */
+        .form-footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 13px;
+            color: #8d99ae;
+        }
+
+        .form-footer i {
+            color: #4a6bc5;
+            margin-right: 4px;
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .pulsing {
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        /* ============ RESPONSIVE: TABLET ============ */
+        @media screen and (max-width: 1024px) {
+            body {
+                flex-direction: column;
+                /* NO centering - content starts from top */
+                align-items: stretch;
+                justify-content: flex-start;
+            }
+
+            .left-panel {
+                flex: none;
+                min-height: auto;
+                padding: 20px;
+            }
+
+            .illustration-wrapper {
+                max-width: 400px;
+            }
+
+            .right-panel {
+                padding: 30px 20px;
+                align-items: flex-start;
+            }
+
+            .login-card h2 {
+                font-size: 28px;
+            }
+        }
+
+        /* ============ RESPONSIVE: MOBILE ============ */
+        @media screen and (max-width: 580px) {
+            body {
+                flex-direction: column;
+                align-items: stretch;
+                justify-content: flex-start;
+                /* No extra space at top */
+                min-height: auto;
+            }
+
+            /* Left panel: compact on mobile */
+            .left-panel {
+                min-height: auto;
+                padding: 10px 10px;
+            }
+
+            .illustration-wrapper {
+                max-width: 220px;
+            }
+
+            /* Hide decorative shapes on mobile to save space */
+            .bg-shape-1,
+            .bg-shape-2,
+            .bg-shape-3 {
+                display: none;
+            }
+
+            /* Right panel: tight padding */
+            .right-panel {
+                padding: 15px 20px;
+                align-items: flex-start;
+            }
+
+            .login-card {
+                max-width: 100%;
+            }
+
+            .login-card h2 {
+                font-size: 24px;
+                margin-bottom: 4px;
+            }
+
+            .login-card .subtitle {
+                margin-bottom: 20px;
+                font-size: 13px;
+            }
+
+            .input-group {
+                margin-bottom: 15px;
+            }
+
+            .input-group label {
+                margin-bottom: 6px;
+            }
+
+            .input-group input[type="email"] {
+                padding: 13px 48px 13px 16px;
+            }
+
+            .btn-submit {
+                padding: 14px;
+            }
+
+            .form-footer {
+                margin-top: 15px;
+            }
+        }
+
+        /* ============ RESPONSIVE: VERY SMALL MOBILE ============ */
+        @media screen and (max-width: 400px) {
+            .left-panel {
+                padding: 8px;
+            }
+
+            .illustration-wrapper {
+                max-width: 180px;
+            }
+
+            .right-panel {
+                padding: 12px 15px;
+            }
+
+            .login-card h2 {
+                font-size: 22px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============ LEFT PANEL ============ -->
+    <div class="left-panel">
+
+        <!-- Decorative background shapes -->
+        <div class="bg-shape-1"></div>
+        <div class="bg-shape-2"></div>
+        <div class="bg-shape-3"></div>
+
+        <!-- Full Teacher Classroom Illustration -->
+        <div class="illustration-wrapper">
+            <svg viewBox="0 0 600 480" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- ===== GROUND SHADOW ===== -->
+                <ellipse cx="300" cy="455" rx="240" ry="15" fill="#d5dde8" opacity="0.5"/>
+
+                <!-- ===== WALL BACKGROUND SHAPES ===== -->
+                <ellipse cx="120" cy="80" rx="60" ry="30" fill="#dce4f4" opacity="0.6"/>
+                <ellipse cx="100" cy="75" rx="40" ry="25" fill="#dce4f4" opacity="0.4"/>
+                <ellipse cx="480" cy="100" rx="50" ry="25" fill="#dce4f4" opacity="0.5"/>
+
+                <circle cx="80" cy="140" r="3" fill="#4a6bc5" opacity="0.15"/>
+                <circle cx="520" cy="60" r="4" fill="#ff6b6b" opacity="0.15"/>
+                <circle cx="500" cy="160" r="3" fill="#2ecc71" opacity="0.15"/>
+
+                <!-- ===== BLACKBOARD ON WALL ===== -->
+                <rect x="70" y="30" width="350" height="200" rx="8" fill="#4a6274"/>
+                <rect x="78" y="38" width="334" height="184" rx="5" fill="#345c6e"/>
+
+                <text x="110" y="85" fill="#b8e6c8" font-size="20" font-weight="bold" font-family="'Courier New', monospace">Mathematics</text>
+                <line x1="110" y1="95" x2="280" y2="95" stroke="#b8e6c8" stroke-width="1.5" opacity="0.4"/>
+
+                <text x="110" y="120" fill="#b8e6c8" font-size="16" font-family="'Courier New', monospace">2 + 2 = 4</text>
+                <text x="110" y="145" fill="#ffd700" font-size="16" font-family="'Courier New', monospace">π ≈ 3.14</text>
+                <text x="110" y="170" fill="#74b9ff" font-size="16" font-family="'Courier New', monospace">A B C D E</text>
+
+                <text x="320" y="120" fill="#ffd700" font-size="22" font-weight="bold" font-family="serif">∑</text>
+                <text x="340" y="145" fill="#ff9ff3" font-size="18" font-weight="bold" font-family="serif">√x</text>
+                <text x="320" y="175" fill="#74b9ff" font-size="16" font-weight="bold" font-family="'Courier New'">∫ dx</text>
+                <text x="320" y="200" fill="#a8e6cf" font-size="14" font-family="'Courier New'">y=mx+c</text>
+
+                <!-- Chalk tray -->
+                <rect x="90" y="228" width="310" height="10" rx="3" fill="#3d5a6e"/>
+                <rect x="160" y="225" width="22" height="8" rx="2" fill="#ffffff" opacity="0.8"/>
+                <rect x="190" y="226" width="18" height="7" rx="2" fill="#ffd700" opacity="0.7"/>
+                <rect x="216" y="225" width="20" height="8" rx="2" fill="#ff6b6b" opacity="0.7"/>
+                <rect x="244" y="226" width="16" height="7" rx="2" fill="#74b9ff" opacity="0.7"/>
+
+                <!-- ===== TEACHER'S DESK ===== -->
+                <rect x="110" y="310" width="280" height="14" rx="5" fill="#c8a45a"/>
+                <rect x="110" y="310" width="280" height="7" rx="5" fill="#dbb96a"/>
+
+                <rect x="120" y="324" width="260" height="55" rx="3" fill="#a07d3a"/>
+                <line x1="200" y1="328" x2="200" y2="375" stroke="#8a6c2f" stroke-width="1.5"/>
+                <line x1="300" y1="328" x2="300" y2="375" stroke="#8a6c2f" stroke-width="1.5"/>
+                <rect x="155" y="345" width="20" height="4" rx="2" fill="#dbb96a"/>
+                <rect x="240" y="345" width="20" height="4" rx="2" fill="#dbb96a"/>
+                <rect x="330" y="345" width="20" height="4" rx="2" fill="#dbb96a"/>
+
+                <rect x="125" y="379" width="8" height="55" rx="3" fill="#7a5c1e"/>
+                <rect x="367" y="379" width="8" height="55" rx="3" fill="#7a5c1e"/>
+
+                <!-- ===== LAPTOP ON DESK ===== -->
+                <rect x="160" y="248" width="130" height="65" rx="8" fill="#2c3e50"/>
+                <rect x="167" y="255" width="116" height="50" rx="5" fill="#3a5199"/>
+                <text x="192" y="275" fill="white" font-size="10" font-weight="bold" font-family="Arial">📚 School Portal</text>
+                <line x1="180" y1="283" x2="270" y2="283" stroke="white" stroke-width="1" opacity="0.3"/>
+                <line x1="180" y1="289" x2="250" y2="289" stroke="white" stroke-width="1" opacity="0.25"/>
+                <line x1="180" y1="295" x2="260" y2="295" stroke="white" stroke-width="1" opacity="0.2"/>
+
+                <rect x="150" y="310" width="150" height="6" rx="3" fill="#34495e"/>
+                <path d="M145 316 L305 316 L300 312 L150 312 Z" fill="#3d566e"/>
+                <rect x="210" y="312" width="40" height="3" rx="1.5" fill="#4a6274"/>
+
+                <!-- ===== PENCIL HOLDER ON DESK ===== -->
+                <g transform="translate(310, 290)">
+                    <rect x="0" y="12" width="28" height="24" rx="4" fill="#7f8c8d"/>
+                    <rect x="4" y="0" width="5" height="18" rx="1.5" fill="#ffd700" transform="rotate(-5, 6, 9)"/>
+                    <rect x="12" y="-2" width="5" height="20" rx="1.5" fill="#ff6b6b" transform="rotate(3, 14, 9)"/>
+                    <rect x="20" y="1" width="5" height="17" rx="1.5" fill="#3498db" transform="rotate(-2, 22, 9)"/>
+                    <polygon points="4,-2 9,-2 6.5,-6" fill="#ffeaa7" transform="rotate(-5, 6, 9)"/>
+                    <polygon points="12,-4 17,-4 14.5,-8" fill="#ffb8b8" transform="rotate(3, 14, 9)"/>
+                    <polygon points="20,-1 25,-1 22.5,-5" fill="#a8d8ff" transform="rotate(-2, 22, 9)"/>
+                </g>
+
+                <!-- ===== COFFEE MUG ON DESK ===== -->
+                <g transform="translate(350, 293)">
+                    <rect x="0" y="0" width="24" height="22" rx="4" fill="white" stroke="#e0e0e0" stroke-width="1"/>
+                    <path d="M24 5 Q33 5 33 12 Q33 19 24 19" fill="none" stroke="#e0e0e0" stroke-width="2"/>
+                    <path d="M8 -4 Q10 -10 8 -16" fill="none" stroke="#ccc" stroke-width="1.5" opacity="0.5" class="pulsing"/>
+                    <path d="M15 -4 Q17 -11 15 -18" fill="none" stroke="#ccc" stroke-width="1.5" opacity="0.4" class="pulsing"/>
+                </g>
+
+                <!-- ===== CHAIR ===== -->
+                <rect x="395" y="340" width="75" height="12" rx="5" fill="#c0392b"/>
+                <rect x="400" y="270" width="12" height="75" rx="4" fill="#a0a0a0"/>
+                <rect x="393" y="262" width="26" height="14" rx="5" fill="#c0392b"/>
+                <line x1="410" y1="352" x2="405" y2="430" stroke="#888" stroke-width="5" stroke-linecap="round"/>
+                <line x1="460" y1="352" x2="465" y2="430" stroke="#888" stroke-width="5" stroke-linecap="round"/>
+                <circle cx="405" cy="435" r="5" fill="#555"/>
+                <circle cx="465" cy="435" r="5" fill="#555"/>
+                <circle cx="435" cy="440" r="5" fill="#555"/>
+                <line x1="435" y1="352" x2="435" y2="430" stroke="#888" stroke-width="4"/>
+
+                <!-- ===== TEACHER CHARACTER ===== -->
+                <path d="M400 345 Q395 370 390 400" stroke="#2c3e50" stroke-width="14" fill="none" stroke-linecap="round"/>
+                <path d="M445 345 Q450 370 455 400" stroke="#2c3e50" stroke-width="14" fill="none" stroke-linecap="round"/>
+                <ellipse cx="387" cy="405" rx="12" ry="6" fill="#1a1a2e"/>
+                <ellipse cx="458" cy="405" rx="12" ry="6" fill="#1a1a2e"/>
+
+                <path d="M405 290 Q405 270 415 260 L440 260 Q450 270 450 290 L445 345 L405 345 Z" fill="#2c3e50"/>
+                <path d="M418 262 L425 275 L422 275 Z" fill="white"/>
+                <path d="M437 262 L430 275 L433 275 Z" fill="white"/>
+                <polygon points="428,272 432,272 430,310" fill="#e74c3c"/>
+
+                <path d="M405 295 Q385 300 360 305" stroke="#2c3e50" stroke-width="13" fill="none" stroke-linecap="round"/>
+                <circle cx="358" cy="307" r="8" fill="#e8b89d"/>
+                <path d="M450 295 Q465 305 475 315" stroke="#2c3e50" stroke-width="13" fill="none" stroke-linecap="round"/>
+                <circle cx="477" cy="317" r="8" fill="#e8b89d"/>
+
+                <rect x="422" y="248" width="16" height="16" rx="5" fill="#e8b89d"/>
+                <ellipse cx="430" cy="232" rx="30" ry="32" fill="#e8b89d"/>
+
+                <ellipse cx="430" cy="212" rx="32" ry="20" fill="#2c3e50"/>
+                <ellipse cx="408" cy="222" rx="10" ry="14" fill="#2c3e50"/>
+                <ellipse cx="452" cy="222" rx="10" ry="14" fill="#2c3e50"/>
+                <ellipse cx="425" cy="208" rx="18" ry="8" fill="#3d566e" opacity="0.5"/>
+
+                <circle cx="418" cy="234" r="11" fill="none" stroke="#2c3e50" stroke-width="2.5"/>
+                <circle cx="442" cy="234" r="11" fill="none" stroke="#2c3e50" stroke-width="2.5"/>
+                <line x1="429" y1="234" x2="431" y2="234" stroke="#2c3e50" stroke-width="2.5"/>
+                <line x1="407" y1="232" x2="402" y2="228" stroke="#2c3e50" stroke-width="2"/>
+                <line x1="453" y1="232" x2="458" y2="228" stroke="#2c3e50" stroke-width="2"/>
+                <ellipse cx="415" cy="231" rx="3" ry="2" fill="white" opacity="0.3"/>
+                <ellipse cx="439" cy="231" rx="3" ry="2" fill="white" opacity="0.3"/>
+
+                <circle cx="418" cy="235" r="4" fill="white"/>
+                <circle cx="442" cy="235" r="4" fill="white"/>
+                <circle cx="419" cy="235" r="2" fill="#2c3e50"/>
+                <circle cx="443" cy="235" r="2" fill="#2c3e50"/>
+                <circle cx="420" cy="234" r="0.8" fill="white"/>
+                <circle cx="444" cy="234" r="0.8" fill="white"/>
+
+                <path d="M410 224 Q418 220 426 224" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round"/>
+                <path d="M434 224 Q442 220 450 224" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round"/>
+
+                <path d="M428 240 Q430 246 432 240" fill="none" stroke="#d4a574" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M420 245 Q425 249 430 245" fill="#2c3e50"/>
+                <path d="M430 245 Q435 249 440 245" fill="#2c3e50"/>
+                <path d="M422 252 Q430 260 438 252" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round"/>
+
+                <!-- ===== SPEECH BUBBLE ===== -->
+                <g class="pulsing">
+                    <rect x="470" y="170" width="75" height="50" rx="15" fill="#ff6b6b"/>
+                    <polygon points="475,220 480,220 462,238" fill="#ff6b6b"/>
+                    <circle cx="493" cy="195" r="4" fill="white"/>
+                    <circle cx="505" cy="195" r="4" fill="white"/>
+                    <circle cx="517" cy="195" r="4" fill="white"/>
+                </g>
+
+                <!-- ===== BOOKS STACKED ===== -->
+                <g transform="translate(65, 340)">
+                    <rect x="0" y="40" width="48" height="13" rx="2" fill="#e74c3c"/>
+                    <rect x="3" y="27" width="44" height="13" rx="2" fill="#3498db"/>
+                    <rect x="-1" y="14" width="52" height="13" rx="2" fill="#2ecc71"/>
+                    <rect x="5" y="0" width="40" height="13" rx="2" fill="#f39c12"/>
+                </g>
+
+                <g transform="translate(510, 350)">
+                    <rect x="0" y="30" width="45" height="12" rx="2" fill="#9b59b6"/>
+                    <rect x="4" y="18" width="40" height="12" rx="2" fill="#1abc9c"/>
+                    <rect x="-2" y="6" width="50" height="12" rx="2" fill="#e67e22"/>
+                </g>
+
+                <!-- ===== PLANTS ===== -->
+                <g transform="translate(40, 300)">
+                    <rect x="8" y="35" width="28" height="28" rx="6" fill="#d35400"/>
+                    <circle cx="22" cy="28" r="18" fill="#27ae60"/>
+                    <circle cx="14" cy="22" r="12" fill="#2ecc71"/>
+                    <circle cx="30" cy="25" r="10" fill="#27ae60"/>
+                    <circle cx="22" cy="15" r="11" fill="#2ecc71"/>
+                </g>
+
+                <g transform="translate(530, 310)">
+                    <rect x="5" y="30" width="22" height="22" rx="5" fill="#8B6914"/>
+                    <circle cx="16" cy="22" r="15" fill="#27ae60"/>
+                    <circle cx="10" cy="17" r="9" fill="#2ecc71"/>
+                    <circle cx="22" cy="20" r="8" fill="#27ae60"/>
+                </g>
+
+                <!-- ===== FLOATING DECORATIONS ===== -->
+                <g transform="translate(50, 190) rotate(-8)" class="pulsing">
+                    <rect x="0" y="0" width="28" height="20" rx="2" fill="#e74c3c"/>
+                    <rect x="2" y="2" width="24" height="16" rx="1" fill="#c0392b"/>
+                    <line x1="4" y1="7" x2="22" y2="7" stroke="white" stroke-width="1" opacity="0.4"/>
+                    <line x1="4" y1="11" x2="18" y2="11" stroke="white" stroke-width="1" opacity="0.4"/>
+                </g>
+
+                <text x="540" y="50" fill="#ffd700" font-size="18" opacity="0.5" class="pulsing">✦</text>
+                <text x="40" y="120" fill="#ffd700" font-size="14" opacity="0.4" class="pulsing">✦</text>
+                <text x="550" y="200" fill="#74b9ff" font-size="12" opacity="0.3" class="pulsing">✦</text>
+
+                <!-- ===== WALL CLOCK ===== -->
+                <g transform="translate(250, 8)">
+                    <circle cx="22" cy="22" r="20" fill="white" stroke="#ddd" stroke-width="2"/>
+                    <circle cx="22" cy="22" r="2" fill="#2c3e50"/>
+                    <line x1="22" y1="22" x2="22" y2="8" stroke="#2c3e50" stroke-width="2" stroke-linecap="round"/>
+                    <line x1="22" y1="22" x2="32" y2="22" stroke="#2c3e50" stroke-width="1.5" stroke-linecap="round"/>
+                    <circle cx="22" cy="5" r="1.5" fill="#2c3e50" opacity="0.3"/>
+                    <circle cx="39" cy="22" r="1.5" fill="#2c3e50" opacity="0.3"/>
+                    <circle cx="22" cy="39" r="1.5" fill="#2c3e50" opacity="0.3"/>
+                    <circle cx="5" cy="22" r="1.5" fill="#2c3e50" opacity="0.3"/>
+                </g>
+
+                <!-- ===== GLOBE ===== -->
+                <g transform="translate(480, 330)">
+                    <circle cx="18" cy="18" r="16" fill="#3498db"/>
+                    <ellipse cx="18" cy="18" rx="16" ry="8" fill="none" stroke="#2ecc71" stroke-width="1.5" opacity="0.6"/>
+                    <ellipse cx="18" cy="18" rx="8" ry="16" fill="none" stroke="#2ecc71" stroke-width="1" opacity="0.4"/>
+                    <ellipse cx="14" cy="12" rx="6" ry="5" fill="#2ecc71" opacity="0.7"/>
+                    <ellipse cx="22" cy="22" rx="4" ry="3" fill="#2ecc71" opacity="0.6"/>
+                    <line x1="18" y1="34" x2="18" y2="42" stroke="#7f8c8d" stroke-width="2"/>
+                    <ellipse cx="18" cy="44" rx="10" ry="3" fill="#7f8c8d"/>
+                </g>
+
+            </svg>
+        </div>
+    </div>
+
+    <!-- ============ RIGHT PANEL ============ -->
+    <div class="right-panel">
+        <div class="login-card">
+
+            <h2>Login</h2>
+            <p class="subtitle">Don't have an account? <a href="#">Create your account</a></p>
+
+            {% if error %}
+            <div class="error-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="input-group">
+                    <label>Email Address</label>
+                    <input
+                        type="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        required
+                    >
+                    <i class="fas fa-envelope field-icon"></i>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Send OTP <i class="fas fa-arrow-right"></i>
+                </button>
+
+            </form>
+
+            <p class="form-footer">
+                <i class="fas fa-lock"></i> Secured with SSL Encryption
+            </p>
+
+        </div>
+    </div>
+
+</body>
+</html>

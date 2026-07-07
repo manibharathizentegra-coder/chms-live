@@ -1,0 +1,1051 @@
+<%{
+	// --- DATA FETCHING & LOGIC ---
+	all_grades = Add_Grade[ID != 0] sort by Grade_name;
+	grade_count = Add_Grade[ID != null].count();
+	all_teachers = Add_Teacher[ID != 0].count();
+	total_teachers_count = Assign_Grade_To_Teacher[ID != 0].count();
+	total_students_count = Add_Student[ID != 0].count();
+	data = Assign_Grade_To_Teacher[Select_Grade != null];
+	// Bulletproof unique grade counter loop
+	assigned_grades_list = List();
+	for each  rec in Assign_Grade_To_Teacher[Select_Grade != null]
+	{
+		assigned_grades_list.add(rec.Select_Grade);
+	}
+	total_grades_count = assigned_grades_list.distinct().size();
+	// --- Dynamic Scaling for Progress Bars ---
+	max_stud = 1;
+	max_teach = 1;
+	for each  g in all_grades
+	{
+		s_cnt = Add_Student[Class_Grade == g.Grade_name].count();
+		t_cnt = Assign_Grade_To_Teacher[Select_Grade == g.ID].count();
+		if(s_cnt > max_stud)
+		{
+			max_stud = s_cnt;
+		}
+		if(t_cnt > max_teach)
+		{
+			max_teach = t_cnt;
+		}
+	}
+	// --- Substitute / Floating Teachers Calculation ---
+	all_teachers_list = List();
+	for each  teacher in Add_Teacher[ID != 0]
+	{
+		all_teachers_list.add(teacher.ID);
+	}
+	assigned_teachers_ids = List();
+	for each  at in Assign_Grade_To_Teacher[ID != 0]
+	{
+		assigned_teachers_ids.add(at.Select_Teacher.ID);
+	}
+	substitute_count = 0;
+	for each  t_id in all_teachers_list
+	{
+		if(!assigned_teachers_ids.contains(t_id))
+		{
+			substitute_count = substitute_count + 1;
+		}
+	}
+	// --- TODAY'S ATTENDANCE PERCENTAGE LOGIC ---
+	today_total = Student_Attendance[Date_field == zoho.currentdate].count();
+	today_present = Student_Attendance[Date_field == zoho.currentdate && Attendance_Status == "Present"].count();
+	attendance_percentage = 0;
+	if(today_total > 0 && today_present > 0)
+	{
+		attendance_percentage = (today_present * 100) / today_total;
+	}
+	else
+	{
+		// Subform Fallback: If attendance is logged via the Attendance_Details subform grid
+		today_main_records = Student_Attendance[Date_field == zoho.currentdate];
+		if(today_main_records.count() > 0)
+		{
+			subform_total = 0;
+			subform_present = 0;
+			for each  main_rec in today_main_records
+			{
+				for each  sub_rec in main_rec.Attendance_Details1
+				{
+					subform_total = subform_total + 1;
+					if(sub_rec.Attendance_details == "Present")
+					{
+						subform_present = subform_present + 1;
+					}
+				}
+			}
+			if(subform_total > 0)
+			{
+				attendance_percentage = (subform_present * 100) / subform_total;
+			}
+		}
+	}
+	// --- NEW CARD 1: TEACHERS BY ROLE PIE CHART LOGIC ---
+	role_primary = Add_Teacher[Teacher_Role == "Primary"].count();
+	role_secondary = Add_Teacher[Teacher_Role == "Secondary"].count();
+	role_substitute = Add_Teacher[Teacher_Role == "Substitute"].count();
+	total_role_count = role_primary + role_secondary + role_substitute;
+	primary_slice_pct = if(total_role_count > 0,(role_primary * 100) / total_role_count,0);
+	secondary_slice_pct = if(total_role_count > 0,(role_secondary * 100) / total_role_count,0);
+	substitute_slice_pct = if(total_role_count > 0,(role_substitute * 100) / total_role_count,0);
+	// Cumulative breakpoints for rendering programmatic conic gradient layers
+	p_end = primary_slice_pct;
+	s_end = p_end + secondary_slice_pct;
+	// --- NEW CARD 2: ATTENDANCE TREND LOGIC (LAST 6 DISTINCT CLASS DAYS) ---
+	attendance_dates_desc = Student_Attendance[ID != 0] sort by Date_field desc;
+	trend_dates = List();
+	for each  att in attendance_dates_desc
+	{
+		if(!trend_dates.contains(att.Date_field))
+		{
+			trend_dates.add(att.Date_field);
+			if(trend_dates.size() == 6)
+			{
+				break;
+			}
+		}
+	}
+	// Chronological ordering block (oldest to newest tracking visualization)
+	ordered_trend_dates = List();
+	if(trend_dates.size() > 0)
+	{
+		if(trend_dates.size() >= 6)
+		{
+			ordered_trend_dates.add(trend_dates.get(5));
+		}
+		if(trend_dates.size() >= 5)
+		{
+			ordered_trend_dates.add(trend_dates.get(4));
+		}
+		if(trend_dates.size() >= 4)
+		{
+			ordered_trend_dates.add(trend_dates.get(3));
+		}
+		if(trend_dates.size() >= 3)
+		{
+			ordered_trend_dates.add(trend_dates.get(2));
+		}
+		if(trend_dates.size() >= 2)
+		{
+			ordered_trend_dates.add(trend_dates.get(1));
+		}
+		if(trend_dates.size() >= 1)
+		{
+			ordered_trend_dates.add(trend_dates.get(0));
+		}
+	}
+	%>
+<!-- BOOTSTRAP HAS BEEN REMOVED TO PREVENT ZOHO SIDEBAR CONFLICTS -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* Scoped Container ensuring no global reset bleed */
+	.chms-isolated-dashboard-wrapper,
+    .chms-isolated-dashboard-wrapper * {
+        box-sizing: border-box;
+    }
+
+	.chms-isolated-dashboard-wrapper {
+		font-family: 'Inter', sans-serif;
+		background: #f4f6f9; 
+		color: #1e293b;
+		padding: 0 0 30px 0;
+		-webkit-font-smoothing: antialiased;
+		min-height: 100vh;
+	}
+
+    /* Custom Flex & Grid Utilities (Replacing Bootstrap) */
+    .chms-header-flex { display: flex; justify-content: space-between; align-items: center; }
+    .chms-brand-flex { display: flex; align-items: center; gap: 16px; }
+    .chms-stat-inner-flex { display: flex; align-items: center; gap: 16px; }
+    .chms-chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .chms-grade-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 8px; }
+    .chms-badges-flex { display: flex; gap: 8px; }
+    .chms-faculty-inner-flex { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+    
+    .chms-stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: -85px; position: relative; z-index: 5; padding-left: 40px; padding-right: 40px; }
+    @media (max-width: 1024px) { .chms-stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .chms-stats-grid { grid-template-columns: 1fr; } }
+
+    .chms-chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-bottom: 24px; }
+    @media (max-width: 900px) { .chms-chart-grid { grid-template-columns: 1fr; } }
+    
+    .chms-faculty-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 1200px) { .chms-faculty-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 900px) { .chms-faculty-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .chms-faculty-grid { grid-template-columns: 1fr; } }
+
+    /* Custom Formatting Utilities */
+    .chms-mb-5-grid { margin-bottom: 48px; }
+    .chms-truncate { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .chms-pill-badge { background-color: #f8fafc; color: #0f172a; border: 1px solid #e2e8f0; border-radius: 50px; padding: 8px 16px; font-weight: 600; font-size: 12px; box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+    .chms-year-badge { display: inline-block; background: #fff; color: #64748b; border: 1px solid #e2e8f0; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 500; margin-top: 4px; }
+    
+    .chms-text-muted { color: #64748b; }
+    .chms-text-primary { color: #3b82f6; }
+    .chms-text-success { color: #10b981; }
+    .chms-text-secondary { color: #64748b; }
+    .chms-text-dark { color: #0f172a; }
+    .chms-fw-bold { font-weight: 700; }
+    .chms-fw-medium { font-weight: 500; }
+    
+    .chms-ms-1 { margin-left: 4px; }
+    .chms-me-1 { margin-right: 4px; }
+    
+    .chms-bg-secondary { background-color: #94a3b8; }
+    .chms-opacity-75 { opacity: 0.75; }
+    
+    .chms-empty-state { width: 100%; text-align: center; color: #64748b; font-size: 13px; padding: 48px 0; }
+    .chms-empty-text { color: #64748b; font-size: 13px; margin-bottom: 16px; padding-left: 4px; }
+
+    /* Modern Minimalist Curved Hero Block Banner */
+    .hero-banner-section {
+        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        border-bottom-left-radius: 40px;
+        border-bottom-right-radius: 40px;
+        padding: 50px 40px 130px 40px; 
+        color: #ffffff;
+        position: relative;
+        box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Church Logo Styling */
+    .brand-logo-img {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        object-fit: cover;
+        background-color: #ffffff;
+        padding: 2px;
+	}
+
+    .hero-banner-section .main-heading-title {
+        font-size: 28px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        line-height: 1.2;
+    }
+
+    .hero-banner-section .sub-heading-desc {
+        font-size: 14px;
+        font-weight: 400;
+        opacity: 0.75;
+        margin-top: 4px;
+        letter-spacing: 0.01em;
+    }
+
+    /* Admin Block Formatting */
+    .user-profile-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 6px 16px 6px 8px;
+        border-radius: 30px;
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .user-avatar-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .user-name-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #ffffff;
+    }
+
+    .summary-stat-card {
+        background: #ffffff !important;
+        border-radius: 24px; 
+        padding: 28px 24px;
+        border: 1px solid rgba(226, 232, 240, 0.8) !important;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.04) !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        height: 100%;
+    }
+    
+    .summary-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    .stat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+
+    .bg-amber-light { background-color: #fef3c7; color: #d97706; }
+    .bg-blue-light { background-color: #dbeafe; color: #2563eb; }
+    .bg-emerald-light { background-color: #d1fae5; color: #059669; }
+    .bg-purple-light { background-color: #f3e8ff; color: #7c3aed; }
+
+    .stat-card-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 2px;
+    }
+
+    .stat-card-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0f172a; 
+        line-height: 1.1;
+    }
+
+    .dashboard-content {
+        padding: 40px 40px 10px 40px;
+    }
+
+    /* Visual Distribution Component Styling */
+    .chart-card-box {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        padding: 26px;
+        box-shadow: 0 4px 16px rgba(15, 23, 42, 0.02);
+        height: 100%;
+    }
+    .chart-box-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+    }
+    .chart-meta-badge {
+        font-size: 12px;
+        font-weight: 600;
+        color: #475569;
+        background: #f1f5f9;
+        padding: 4px 12px;
+        border-radius: 30px;
+        border: 1px solid #e2e8f0;
+    }
+    .progress-bar-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+    .progress-bar-row:last-child {
+        margin-bottom: 0;
+    }
+    .progress-row-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #475569;
+        width: 85px;
+        flex-shrink: 0;
+    }
+    .progress-track-wrapper {
+        flex-grow: 1;
+        background: #f1f5f9;
+        height: 8px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 0 16px;
+    }
+    .progress-fill-bar {
+        height: 100%;
+        border-radius: 10px;
+    }
+    .fill-student-metric { background-color: #6366f1; }
+    .fill-teacher-metric { background-color: #10b981; }
+    
+    .metric-count-display {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #0f172a;
+        min-width: 75px;
+        text-align: right;
+    }
+    .metric-count-subtext {
+        font-size: 12px;
+        color: #94a3b8;
+        font-weight: 400;
+        margin-left: 5px;
+    }
+
+    /* Pure CSS Native Flex Chart Layout */
+    .bar-chart-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        height: 155px;
+        padding: 15px 0 5px 0;
+    }
+    .bar-chart-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex-grow: 1;
+        height: 100%;
+        justify-content: flex-end;
+    }
+    .bar-track-container {
+        width: 32px;
+        background: #f1f5f9;
+        border-radius: 8px 8px 0 0;
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+        position: relative;
+    }
+    .bar-fill-element {
+        width: 100%;
+        background: linear-gradient(to top, #6366f1, #818cf8);
+        border-radius: 8px 8px 0 0;
+        position: relative;
+    }
+    .bar-value-tooltip {
+        position: absolute;
+        top: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 11px;
+        font-weight: 700;
+        color: #4f46e5;
+    }
+    .bar-axis-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #64748b;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    /* Pure CSS Pie Chart Layout Components */
+    .pie-chart-flex {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        height: 155px; 
+        padding: 10px 0 5px 0;
+    }
+    .pie-circle-render {
+        width: 125px;
+        height: 125px;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 2px #ffffff, 0 4px 16px rgba(15, 23, 42, 0.06);
+        flex-shrink: 0;
+    }
+    .pie-legend-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex-grow: 1;
+        padding-left: 30px;
+    }
+    .legend-list-item {
+        display: flex;
+        align-items: center;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: #475569;
+    }
+    .legend-marker-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+    .marker-indigo { background-color: #4f46e5; }
+    .marker-sky { background-color: #0ea5e9; }
+    .marker-amber { background-color: #f59e0b; }
+    
+    .legend-item-text {
+        min-width: 80px;
+    }
+    .legend-item-value {
+        color: #0f172a;
+        font-weight: 700;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    /* Colorful Grade Section Cards */
+    .grade-section-panel {
+        background: #ffffff;
+        border-radius: 22px;
+        border: 1px solid #e2e8f0;
+        border-left: 8px solid #3b82f6; 
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+        padding: 32px;
+        margin-bottom: 32px;
+    }
+    
+    .grade-section-panel:nth-of-type(even) {
+        border-left-color: #6366f1;
+    }
+
+    .grade-panel-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+    }
+
+    .section-divider-label {
+        font-size: 13px;
+        font-weight: 800;
+        color: #475569;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-top: 32px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .section-divider-label::after {
+        content: '';
+        flex-grow: 1;
+        height: 1px;
+        background: #e2e8f0;
+    }
+
+    /* Faculty Cards */
+    .faculty-profile-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid #cbd5e1;
+        border-radius: 16px;
+        padding: 22px;
+        transition: all 0.25s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    }
+
+    .faculty-profile-card:hover {
+        border-color: #3b82f6;
+        background: #ffffff;
+        box-shadow: 0 8px 20px rgba(59, 130, 246, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .faculty-avatar-frame {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        object-fit: cover;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+    }
+
+    .faculty-name-text {
+        font-size: 17px;
+        font-weight: 700;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .faculty-contact-row {
+        font-size: 13.5px;
+        color: #334155;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .faculty-contact-row i {
+        color: #3b82f6;
+        font-size: 14px;
+    }
+
+    /* Cleaned Student Roster Table Container */
+    .roster-table-responsive {
+        background: transparent !important;
+        border: 1px solid #cbd5e1;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+
+    .custom-data-table {
+        width: 100%;
+        border-collapse: collapse;
+        white-space: nowrap;
+    }
+
+    .custom-data-table thead tr {
+        background: #64748b;
+    }
+
+    .custom-data-table th {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #ffffff; 
+        padding: 16px 22px;
+        border-bottom: none;
+        letter-spacing: 0.05em;
+        text-align: left;
+    }
+
+    .custom-data-table td {
+        font-size: 14.5px; 
+        padding: 16px 22px;
+        color: #1e293b;
+        border-bottom: 1px solid #cbd5e1; 
+        font-weight: 500;
+        text-align: left;
+    }
+    
+    .custom-data-table tbody tr:hover {
+        background-color: #f1f5f9;
+    }
+
+    .custom-data-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Gender Badges */
+    .badge-soft-pill {
+        font-size: 12px;
+        padding: 5px 12px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+    .badge-soft-blue { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+    .badge-soft-pink { background-color: #fce7f3; color: #9d174d; border: 1px solid #fbcfe8; }
+    .badge-soft-gray { background-color: #ffffff; color: #475569; border: 1px solid #e2e2e8; }
+</style>
+
+<div class="chms-isolated-dashboard-wrapper">
+    <div class="hero-banner-section">
+        <div class="chms-header-flex">
+            <div class="chms-brand-flex">
+                <img src="https://static.vecteezy.com/system/resources/previews/047/422/800/non_2x/church-flat-icon-illustration-on-white-background-free-vector.jpg" class="brand-logo-img" alt="CHMS Logo">
+                <div>
+                    <div class="main-heading-title">CHMS Dashboard</div>
+                    <div class="sub-heading-desc">Upcoming events & academic tracking</div>
+                </div>
+            </div>
+            <div class="user-profile-box">
+                <img src="https://cdn-icons-png.magnific.com/512/12225/12225935.png" class="user-avatar-icon" alt="Profile">
+                <div class="user-name-label">Admin Profile</div>
+			</div>
+        </div>
+    </div>
+
+    <div class="chms-stats-grid">
+        <div class="summary-stat-card">
+            <div class="chms-stat-inner-flex">
+                <div class="stat-icon-wrapper bg-amber-light">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div>
+                    <div class="stat-card-label">No. of Teachers Assigned To Grade</div>
+                    <div class="stat-card-value"><%=total_grades_count%>/<%=grade_count%></div>
+                </div>
+            </div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="chms-stat-inner-flex">
+                <div class="stat-icon-wrapper bg-blue-light">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div>
+                    <div class="stat-card-label">No. of Teachers Allocated</div>
+                    <div class="stat-card-value"><%=total_teachers_count%>/<%=all_teachers%></div>
+                </div>
+            </div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="chms-stat-inner-flex">
+                <div class="stat-icon-wrapper bg-emerald-light">
+                    <i class="fas fa-user-graduate"></i>
+                </div>
+                <div>
+                    <div class="stat-card-label">Total Students</div>
+                    <div class="stat-card-value"><%=total_students_count%></div>
+                </div>
+            </div>
+        </div>
+        <div class="summary-stat-card">
+            <div class="chms-stat-inner-flex">
+                <div class="stat-icon-wrapper bg-purple-light">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div>
+                    <div class="stat-card-label">Today's Attendance</div>
+                    <div class="stat-card-value"><%=attendance_percentage%>%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+	 <div class="chms-stats-grid" style="margin-top: 24px;">
+    <div class="summary-stat-card">
+        <div class="chms-stat-inner-flex">
+            <div class="stat-icon-wrapper bg-emerald-light">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <div>
+                <div class="stat-card-label">Management</div>
+                <a href="#Form:Add_Teacher?zc_BgClr=#ffffff&zc_LoadIn=dialog&zc_HdrHeight=40px" style="font-weight: 700; color: #0f172a; text-decoration: none;">Add Teacher</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-stat-card">
+        <div class="chms-stat-inner-flex">
+            <div class="stat-icon-wrapper bg-blue-light">
+                <i class="fas fa-user-graduate"></i>
+            </div>
+            <div>
+                <div class="stat-card-label">Management</div>
+                <a href="#Form:Add_Student?zc_BgClr=#ffffff&zc_LoadIn=dialog&zc_HdrHeight=40px" style="font-weight: 700; color: #0f172a; text-decoration: none;">Add Student</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="summary-stat-card">
+        <div class="chms-stat-inner-flex">
+            <div class="stat-icon-wrapper bg-purple-light">
+                <i class="fas fa-file-signature"></i>
+            </div>
+            <div>
+                <div class="stat-card-label">Management</div>
+                <a href="#Form:Assign_Grade_To_Teacher?zc_BgClr=#ffffff&zc_LoadIn=dialog&zc_HdrHeight=40px" style="font-weight: 700; color: #0f172a; text-decoration: none;">Assign Grade</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="dashboard-content">
+        
+        <div class="chms-chart-grid">
+            <div class="chart-card-box">
+                <div class="chms-chart-header">
+                    <div class="chart-box-title">Students by Grade</div>
+                    <div class="chart-meta-badge"><%=total_students_count%> total</div>
+                </div>
+<%
+	for each  g in all_grades
+	{
+		s_cnt = Add_Student[Class_Grade == g.Grade_name].count();
+		s_pct = 0;
+		if(max_stud > 0)
+		{
+			s_pct = (s_cnt * 100) / max_stud;
+		}
+		%>
+<div class="progress-bar-row">
+                    <div class="progress-row-label chms-truncate" title="<%=g.Grade_name%>"><%=g.Grade_name%></div>
+                    <div class="progress-track-wrapper">
+                        <div class="progress-fill-bar fill-student-metric" style="width: <%=s_pct%>%;"></div>
+                    </div>
+                    <div class="metric-count-display">
+                        <span><%=s_cnt%></span><span class="metric-count-subtext">Enrolled</span>
+                    </div>
+                </div>
+<%
+	}
+	%>
+</div>
+
+            <div class="chart-card-box">
+                <div class="chms-chart-header">
+                    <div class="chart-box-title">Teachers by Grade</div>
+                    <div class="chart-meta-badge"><%=all_teachers%> staff</div>
+                </div>
+<%
+	for each  g in all_grades
+	{
+		t_cnt = Assign_Grade_To_Teacher[Select_Grade == g.ID].count();
+		t_pct = 0;
+		if(max_teach > 0)
+		{
+			t_pct = (t_cnt * 100) / max_teach;
+		}
+		%>
+<div class="progress-bar-row">
+                    <div class="progress-row-label chms-truncate" title="<%=g.Grade_name%>"><%=g.Grade_name%></div>
+                    <div class="progress-track-wrapper">
+                        <div class="progress-fill-bar fill-teacher-metric" style="width: <%=t_pct%>%;"></div>
+                    </div>
+                    <div class="metric-count-display">
+                        <span><%=t_cnt%></span><span class="metric-count-subtext">Staff</span>
+                    </div>
+                </div>
+<%
+	}
+	if(substitute_count > 0)
+	{
+		sub_pct = (substitute_count * 100) / max_teach;
+		if(sub_pct > 100)
+		{
+			sub_pct = 100;
+		}
+		%>
+<div class="progress-bar-row">
+                    <div class="progress-row-label chms-text-muted">—</div>
+                    <div class="progress-track-wrapper">
+                        <div class="progress-fill-bar chms-bg-secondary chms-opacity-75" style="width: <%=sub_pct%>%;"></div>
+                    </div>
+                    <div class="metric-count-display">
+                        <span><%=substitute_count%></span><span class="metric-count-subtext">Substitute</span>
+                    </div>
+                </div>
+<%
+	}
+	%>
+</div>
+        </div>
+
+        <div class="chms-chart-grid chms-mb-5-grid">
+            <div class="chart-card-box">
+                <div class="chms-chart-header">
+                    <div class="chart-box-title">Teachers by Role</div>
+                    <div class="chart-meta-badge"><%=total_role_count%> total</div>
+                </div>
+                
+                <div class="pie-chart-flex">
+<%
+	if(total_role_count == 0)
+	{
+		%>
+<div class="pie-circle-render" style="background: #e2e8f0;"></div>
+<%
+	}
+	else
+	{
+		%>
+<div class="pie-circle-render" style="background: conic-gradient(#4f46e5 0% <%=p_end%>%, #0ea5e9 <%=p_end%>% <%=s_end%>%, #f59e0b <%=s_end%>% 100%);"></div>
+<%
+	}
+	%>
+<div class="pie-legend-list">
+                        <div class="legend-list-item">
+                            <span class="legend-marker-dot marker-indigo"></span>
+                            <span class="legend-item-text">Primary</span>
+                            <span class="legend-item-value"><%=role_primary%> <small class="chms-text-muted chms-ms-1">(<%=primary_slice_pct%>%)</small></span>
+                        </div>
+                        <div class="legend-list-item">
+                            <span class="legend-marker-dot marker-sky"></span>
+                            <span class="legend-item-text">Secondary</span>
+                            <span class="legend-item-value"><%=role_secondary%> <small class="chms-text-muted chms-ms-1">(<%=secondary_slice_pct%>%)</small></span>
+                        </div>
+                        <div class="legend-list-item">
+                            <span class="legend-marker-dot marker-amber"></span>
+                            <span class="legend-item-text">Substitute</span>
+                            <span class="legend-item-value"><%=role_substitute%> <small class="chms-text-muted chms-ms-1">(<%=substitute_slice_pct%>%)</small></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card-box">
+                <div class="chms-chart-header">
+                    <div class="chart-box-title">Attendance Trend</div>
+                    <div class="chart-meta-badge" style="background: #e0e7ff; color: #4338ca; border-color: #c7d2fe;">
+                        <i class="fas fa-trending-up chms-me-1"></i> Last 6 class days
+                    </div>
+                </div>
+                
+                <div class="bar-chart-flex">
+<%
+	if(ordered_trend_dates.size() == 0)
+	{
+		%>
+<div class="chms-empty-state">No historical log data captured.</div>
+<%
+	}
+	else
+	{
+		for each  t_date in ordered_trend_dates
+		{
+			t_total = Student_Attendance[Date_field == t_date].count();
+			t_present = Student_Attendance[Date_field == t_date && Attendance_Status == "Present"].count();
+			t_pct = 0;
+			if(t_total > 0)
+			{
+				t_pct = (t_present * 100) / t_total;
+			}
+			else
+			{
+				t_main_records = Student_Attendance[Date_field == t_date];
+				sub_total = 0;
+				sub_present = 0;
+				for each  m_rec in t_main_records
+				{
+					for each  s_rec in m_rec.Attendance_Details1
+					{
+						sub_total = sub_total + 1;
+						if(s_rec.Attendance_details == "Present")
+						{
+							sub_present = sub_present + 1;
+						}
+					}
+				}
+				if(sub_total > 0)
+				{
+					t_pct = (sub_present * 100) / sub_total;
+				}
+			}
+			date_str = t_date.toString("MM-dd");
+			%>
+<div class="bar-chart-column">
+                        <div class="bar-track-container">
+                            <div class="bar-fill-element" style="height: <%=t_pct%>%;">
+                                <span class="bar-value-tooltip"><%=t_pct%>%</span>
+                            </div>
+                        </div>
+                        <div class="bar-axis-label"><%=date_str%></div>
+                    </div>
+<%
+		}
+	}
+	%>
+</div>
+            </div>
+        </div>
+<%
+	for each  grade in all_grades
+	{
+		grade_teachers = Assign_Grade_To_Teacher[Select_Grade == grade.ID];
+		grade_students = Add_Student[Class_Grade == grade.Grade_name];
+		if(grade_teachers.count() > 0 || grade_students.count() > 0)
+		{
+			%>
+<div class="grade-section-panel">
+                <div class="chms-grade-header">
+                    <div class="grade-panel-title">
+                        <%=grade.Grade_name%>
+                    </div>
+                    <div class="chms-badges-flex">
+                        <span class="chms-pill-badge"><%=grade_teachers.count()%> Staff Units</span>
+                        <span class="chms-pill-badge"><%=grade_students.count()%> Tracked Enrolments</span>
+                    </div>
+                </div>
+                
+                <div class="section-divider-label">
+                    <i class="fas fa-chalkboard-teacher chms-me-1 chms-text-primary"></i> Assigned Faculty Overview
+                </div>
+<%
+			if(grade_teachers.count() == 0)
+			{
+				%>
+<div class="chms-empty-text">No faculty members currently allocated to this grade path.</div>
+<%
+			}
+			else
+			{
+				%>
+<div class="chms-faculty-grid">
+<%
+				for each  assignment in grade_teachers
+				{
+					teacher_name = assignment.Select_Teacher.Name;
+					teacher_email = assignment.Select_Teacher.Email1;
+					teacher_mobile = assignment.Select_Teacher.Mobile_Number;
+					avatar_url = "https://static.vecteezy.com/system/resources/thumbnails/006/877/567/small/work-character-solid-icon-illustration-office-workers-teachers-judges-police-artists-employees-free-vector.jpg";
+					%>
+<div class="faculty-profile-card">
+                        <div class="chms-faculty-inner-flex">
+                            <img src="<%=avatar_url%>" alt="Faculty Logo" class="faculty-avatar-frame">
+                            <div>
+                                <h5 class="faculty-name-text"><%=teacher_name%></h5>
+                                <span class="chms-year-badge"><%=assignment.Academic_Year%></span>
+                            </div>
+                        </div>
+
+                        <div class="faculty-contact-row" title="Email Address">
+                            <i class="far fa-envelope"></i>
+                            <span class="chms-truncate chms-fw-medium"><%=ifnull(teacher_email,"N/A")%></span>
+                        </div>
+                        <div class="faculty-contact-row" title="Mobile Connection">
+                            <i class="fas fa-phone-alt"></i>
+                            <span class="chms-fw-medium"><%=ifnull(teacher_mobile,"N/A")%></span>
+                        </div>
+                    </div>
+<%
+				}
+				%>
+</div>
+<%
+			}
+			%>
+<div class="section-divider-label">
+                    <i class="fas fa-user-graduate chms-me-1 chms-text-success"></i> Enrolled Student Roster
+                </div>
+<%
+			if(grade_students.count() == 0)
+			{
+				%>
+<div class="chms-empty-text">No active student profiles currently linked to this layout structure.</div>
+<%
+			}
+			else
+			{
+				%>
+<div class="roster-table-responsive">
+                    <table class="custom-data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 8%;">S.No.</th>
+                                <th style="width: 42%;">Student Name</th>
+                                <th style="width: 25%;">Gender Identity</th>
+                                <th style="width: 25%;">DOB</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+<%
+				count = 0;
+				for each  student in grade_students
+				{
+					count = count + 1;
+					student_name = student.Student_Name;
+					gender = student.Gender;
+					dob = student.Date_of_Birth1;
+					gender_class = "badge-soft-gray";
+					if(gender == "Male")
+					{
+						gender_class = "badge-soft-blue";
+					}
+					else if(gender == "Female")
+					{
+						gender_class = "badge-soft-pink";
+					}
+					%>
+<tr>
+                                <td class="chms-text-secondary chms-fw-bold"><%=count%></td>
+                                <td class="chms-fw-bold chms-text-dark"><%=student_name%></td>
+                                <td>
+                                    <span class="badge-soft-pill <%=gender_class%>">
+                                        <%=ifnull(gender,"N/A")%>
+                                    </span>
+                                </td>
+                                <td class="chms-text-secondary chms-fw-medium">
+                                    <%=ifnull(dob.toString("dd-MMM-yyyy"),"N/A")%>
+                                </td>
+                            </tr>
+<%
+				}
+				%>
+</tbody>
+                    </table>
+                </div>
+<%
+			}
+			%>
+</div>
+<%
+		}
+	}
+	%>
+</div>
+</div>
+<%
+
+}%>

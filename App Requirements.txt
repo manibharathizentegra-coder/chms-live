@@ -1,0 +1,3 @@
+all Template & my  for email reminder
+reply mail to 
+Bcc mail (student mail can't be show to others)

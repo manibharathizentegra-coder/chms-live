@@ -2,316 +2,692 @@
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promote Students</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<title>Promote Students</title>
+    <style>
+        /* Base Global Styling */
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 40px 20px;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
 
-<style>
+        /* Top Navigation & Fixed Menu Button Alignment */
+        .top-nav {
+            max-width: 1000px;
+            margin: 0 auto 20px auto;
+            display: flex;
+            justify-content: flex-start;
+        }
 
-body{
-    font-family:Arial;
-    background:#f4f6f9;
-    padding:20px;
-}
+        .menu-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            background: #ffffff;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            border-radius: 50%;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
 
-.container{
-    background:white;
-    padding:20px;
-    border-radius:10px;
-}
+        .menu-btn:hover {
+            color: #4f46e5;
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
 
-table{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
-}
+        .menu-btn i {
+            font-size: 16px;
+        } 
 
-th,td{
-    border:1px solid #ddd;
-    padding:10px;
-}
+        /* Mobile Sidebar Drawer Layout */
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #ffffff;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.05);
+            z-index: 1000;
+            transition: left 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #e2e8f0;
+        }
 
-th{
-    background:#2c3e50;
-    color:white;
-}
+        .mobile-sidebar.active {
+            left: 0;
+        }
 
-.promote{
-    background:green;
-    color:white;
-    border:none;
-    padding:8px 15px;
-}
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e2e8f0;
+        }
 
-.stay{
-    background:red;
-    color:white;
-    border:none;
-    padding:8px 15px;
-}
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+        }
 
-@media screen and (max-width:768px){
+        .close-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
 
-    .filters{
-        flex-direction:column;
-    }
+        .close-btn:hover {
+            color: #4f46e5;
+        }
 
-    select,
-    input,
-    button{
-        width:100%;
-    }
+        .sidebar-menu {
+            padding: 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
 
-    table{
-        font-size:14px;
-    }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #475569;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
 
-    th,td{
-        padding:8px;
-    }
-}
+        .sidebar-menu a i {
+            width: 20px;
+            font-size: 16px;
+            color: #64748b;
+        }
 
-</style>
+        .sidebar-menu a:hover {
+            background: #f1f5f9;
+            color: #4f46e5;
+        }
 
+        .sidebar-menu a:hover i {
+            color: #4f46e5;
+        }
+
+        .sidebar-footer {
+            padding: 20px 12px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .mobile-logout {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .mobile-logout:hover {
+            background: #fef2f2;
+        }
+
+        /* Dimmed Window Overlay Backdrop */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+        }
+
+        /* Clean White Master Container Card */
+        .container {
+            background: #ffffff;
+            max-width: 1000px;
+            margin: auto;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 0;
+            margin-bottom: 25px;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2::before {
+            content: '\f501';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: #4f46e5;
+        }
+
+        /* Filter Controls Styling */
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background: #f1f5f9;
+            padding: 16px;
+            border-radius: 12px;
+            align-items: center;
+        }
+
+        .filters select {
+            padding: 10px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background-color: #ffffff;
+            font-family: inherit;
+            font-size: 14px;
+            color: #334155;
+            min-width: 180px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 14px;
+            padding-right: 35px;
+        }
+
+        .filters select:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
+        }
+
+        .filter-btn {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-btn:hover {
+            background: #1e293b;
+        }
+
+        /* Data Layout Table Customization */
+        .table-container {
+            overflow-x: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #ffffff;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 14.5px;
+        }
+
+        th, td {
+            padding: 14px 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            color: #475569;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* High-Contrast Interactive Checkbox Styling */
+        .checkbox-cell {
+            text-align: center;
+            width: 120px;
+        }
+
+        .action-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .action-label input[type="checkbox"] {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+            transition: all 0.2s ease;
+            background: #ffffff;
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+        }
+
+        /* High-Contrast DARK colors for identification when checked */
+        .promote-chk:checked {
+            background-color: #064e3b !important; /* Deep Dark Emerald Green */
+            border-color: #064e3b !important;
+        }
+
+        .stay-chk:checked {
+            background-color: #7f1d1d !important; /* Deep Dark Crimson Red */
+            border-color: #7f1d1d !important;
+        }
+
+        /* Sharp checkmark icon inside checked boxes */
+        .action-label input[type="checkbox"]:checked::before {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: white;
+            font-size: 13px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .action-label input[type="checkbox"]:focus {
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Global Bulk Submit Button Element */
+        .submit-container {
+            margin-top: 25px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .submit-btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .submit-btn:hover {
+            background: #4338ca;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            background: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Mobile Breakpoint Adaptations */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .container {
+                padding: 20px 15px;
+            }
+
+            .filters {
+                flex-direction: column;
+                gap: 10px;
+                padding: 12px;
+            }
+
+            .filters select, .filter-btn {
+                width: 100%;
+            }
+
+            table {
+                font-size: 13.5px;
+            }
+
+            th, td {
+                padding: 12px 10px;
+            }
+
+            .top-nav {
+                margin-bottom: 15px;
+                max-width: 1000px;
+            }
+
+            .checkbox-cell {
+                width: 75px;
+            }
+        }
+    </style>
 </head>
-
 <body>
 
+<div class="top-nav">
+    <button class="menu-btn" onclick="openSidebar()" title="Open Navigation" aria-label="Open Navigation">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<div class="mobile-sidebar" id="mobileSidebar">
+    <div class="sidebar-header">
+        <h3>Teacher Portal</h3>
+        <button class="close-btn" onclick="closeSidebar()" aria-label="Close Navigation">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-menu">
+        <a href="/teacher-dashboard/">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="/profile/">
+            <i class="fas fa-user-tie"></i> Profile
+        </a>
+        <a href="/my-classes/">
+            <i class="fas fa-school"></i> My Classes
+        </a>
+        <a href="/students/">
+            <i class="fas fa-calendar-check"></i> Attendance
+        </a>
+        <a href="/student-marks/">
+            <i class="fas fa-file-signature"></i> Student Marks
+        </a>
+        <a href="/send-mail/">
+            <i class="fas fa-envelope-open-text"></i> Send Mail
+        </a>
+        <a href="/promote-students/">
+            <i class="fas fa-user-graduate"></i> Promote Students
+        </a>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="/logout/" class="mobile-logout">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
 <div class="container">
+    <h2>Promote Students</h2>
 
-<h2>Promote Students</h2>
+    <div class="filters">
+        <select id="academicYear">
+            <option value="">Academic Year</option>
+            {% for year in academic_years %}
+            <option value="{{ year }}">{{ year }}</option>
+            {% endfor %}
+        </select>
 
-<select id="academicYear">
+        <select id="gradeFilter">
+            <option value="">Grade</option>
+            <option value="Grade A">Grade A</option>
+            <option value="Grade B">Grade B</option>
+            <option value="Grade C">Grade C</option>
+            <option value="Grade D">Grade D</option>
+            <option value="Grade E">Grade E</option>
+        </select>
 
-<option value="">
-Academic Year
-</option>
+        <button class="filter-btn" onclick="filterStudents()">
+            <i class="fas fa-filter"></i> Filter
+        </button>
+    </div>
 
-{% for year in academic_years %}
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Grade</th>
+                    <th style="text-align: center;">Promote</th>
+                    <th style="text-align: center;">Stay</th>
+                </tr>
+            </thead>
+            <tbody id="studentTable">
+                {% for student in students %}
+                <tr 
+                    data-id="{{ student.ID }}"
+                    data-grade="{{ student.Class_Grade }}"
+                    data-year="{{ student.Academic_Year }}"
+                    data-student="{{ student.Student_Name.zc_display_value }}"
+                >
+                    <td>{{ student.Student_Name.zc_display_value }}</td>
+                    <td>{{ student.Class_Grade }}</td>
+                    <td class="checkbox-cell">
+                        <label class="action-label">
+                            <input type="checkbox" class="promote-chk" onchange="handleRowExclusion(this, 'promote')">
+                        </label>
+                    </td>
+                    <td class="checkbox-cell">
+                        <label class="action-label">
+                            <input type="checkbox" class="stay-chk" onchange="handleRowExclusion(this, 'stay')">
+                        </label>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-<option value="{{ year }}">
-{{ year }}
-</option>
-
-{% endfor %}
-
-</select>
-
-<select id="gradeFilter">
-
-<option value="">
-Grade
-</option>
-
-<option value="A">A</option>
-<option value="B">B</option>
-<option value="C">C</option>
-<option value="D">D</option>
-<option value="E">E</option>
-
-</select>
-
-<button onclick="filterStudents()">
-Filter
-</button>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Student Name</th>
-<th>Grade</th>
-<th>Action</th>
-
-</tr>
-
-</thead>
-
-<tbody id="studentTable">
-
-{% for student in students %}
-
-<tr
-data-id="{{ student.ID }}"
-data-grade="{{ student.Class_Grade }}"
-data-year="{{ student.Academic_Year }}"
-data-student="{{ student.Student_Name.zc_display_value }}"
->
-
-<td>
-{{ student.Student_Name.zc_display_value }}
-</td>
-
-<td>
-{{ student.Class_Grade }}
-</td>
-
-<td>
-
-<button
-class="promote"
-onclick="savePromotion(this,'Promoted')"
->
-Promote
-</button>
-
-<button
-class="stay"
-onclick="savePromotion(this,'Stay')"
->
-Stay
-</button>
-
-</td>
-
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
+    <div class="submit-container">
+        <button class="submit-btn" id="globalSubmitBtn" onclick="submitAllPromotions()">
+            <i class="fas fa-cloud-upload-alt"></i> Submit Decisions
+        </button>
+    </div>
 </div>
 
 <script>
+// Toggle Sidebar Drawers 
+function openSidebar() {
+    const sidebar = document.getElementById("mobileSidebar");
+    const overlay = document.getElementById("overlay");
+    overlay.style.display = "block";
+    setTimeout(() => {
+        sidebar.classList.add("active");
+        overlay.classList.add("active");
+    }, 10);
+}
 
+function closeSidebar() {
+    const sidebar = document.getElementById("mobileSidebar");
+    const overlay = document.getElementById("overlay");
+    sidebar.classList.remove("active");
+    overlay.classList.remove("active");
+    setTimeout(() => {
+        overlay.style.display = "none";
+    }, 300);
+}
+
+// Handles either/or selection strictly within each isolated row
+function handleRowExclusion(checkbox, type) {
+    let row = checkbox.closest("tr");
+    let promoteBox = row.querySelector(".promote-chk");
+    let stayBox = row.querySelector(".stay-chk");
+
+    if (type === 'promote' && checkbox.checked) {
+        stayBox.checked = false;
+    } else if (type === 'stay' && checkbox.checked) {
+        promoteBox.checked = false;
+    }
+}
+
+// Table search filter lookups
 function filterStudents(){
-
-    let grade =
-        document.getElementById(
-            "gradeFilter"
-        ).value;
-
-    let year =
-        document.getElementById(
-            "academicYear"
-        ).value;
-
-    let rows =
-        document.querySelectorAll(
-            "#studentTable tr"
-        );
+    let grade = document.getElementById("gradeFilter").value;
+    let year = document.getElementById("academicYear").value;
+    let rows = document.querySelectorAll("#studentTable tr");
 
     rows.forEach(function(row){
+        let g = row.getAttribute("data-grade");
+        let y = row.getAttribute("data-year");
 
-        let g =
-            row.getAttribute(
-                "data-grade"
-            );
-
-        let y =
-            row.getAttribute(
-                "data-year"
-            );
-
-        if(
-            g == grade &&
-            y == year
-        ){
-            row.style.display="";
+        if(g == grade && y == year){
+            row.style.display = "";
+        } else {
+            row.style.display = "none";
         }
-
-        else{
-            row.style.display="none";
-        }
-
     });
-
 }
 
-function savePromotion(button,status){
+// Global batch action submit loop
+function submitAllPromotions() {
+    let rows = document.querySelectorAll("#studentTable tr");
+    let selectedRecords = [];
+    
+    let academicYearValue = document.getElementById("academicYear").value;
+    let classGradeFilterValue = document.getElementById("gradeFilter").value;
 
-    let row = button.closest("tr");
+    rows.forEach(function(row) {
+        if (row.style.display === "none") return;
 
-    let currentGrade =
-        row.getAttribute("data-grade");
+        let promoteBox = row.querySelector(".promote-chk");
+        let stayBox = row.querySelector(".stay-chk");
+        
+        let status = "";
+        if (promoteBox && promoteBox.checked) status = "Promoted";
+        if (stayBox && stayBox.checked) status = "Stay";
 
-    let nextGrade = currentGrade;
+        if (status !== "") {
+            let currentGrade = row.getAttribute("data-grade");
+            let nextGrade = currentGrade;
 
-    if(status === "Promoted"){
+            if (status === "Promoted") {
+                if (currentGrade === "Grade A") nextGrade = "Grade B";
+                else if (currentGrade === "Grade B") nextGrade = "Grade C";
+                else if (currentGrade === "Grade C") nextGrade = "Grade D";
+                else if (currentGrade === "Grade D") nextGrade = "Grade E";
+                else if (currentGrade === "Grade E") nextGrade = "Completed";
+            }
 
-        if(currentGrade === "A"){
-            nextGrade = "B";
+            selectedRecords.push({
+                rowElement: row,
+                payload: {
+                    academic_year: academicYearValue,
+                    class_grade: classGradeFilterValue,
+                    student_id: row.getAttribute("data-id"),
+                    student_name: row.getAttribute("data-student"),
+                    current_grade: currentGrade,
+                    promoted_to_grade: nextGrade,
+                    status: status
+                }
+            });
         }
-        else if(currentGrade === "B"){
-            nextGrade = "C";
-        }
-        else if(currentGrade === "C"){
-            nextGrade = "D";
-        }
-        else if(currentGrade === "D"){
-            nextGrade = "E";
-        }
-        else if(currentGrade === "E"){
-            nextGrade = "Completed";
-        }
+    });
 
+    if (selectedRecords.length === 0) {
+        alert("Please select at least one student decision before submitting.");
+        return;
     }
 
-    fetch("/save-promotion/",{
+    let submitBtn = document.getElementById("globalSubmitBtn");
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving Decisions...`;
 
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
-        },
-
-        body: JSON.stringify({
-
-            academic_year:
-                document.getElementById("academicYear").value,
-
-            class_grade:
-                document.getElementById("gradeFilter").value,
-
-            student_id:
-                row.getAttribute("data-id"),
-
-            student_name:
-                row.getAttribute("data-student"),
-
-            current_grade:
-                currentGrade,
-
-            promoted_to_grade:
-                nextGrade,
-
-            status:
-                status
+    let requests = selectedRecords.map(record => {
+        return fetch("/save-promotion/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(record.payload)
         })
-    })
+        .then(response => {
+            if (!response.ok) throw new Error("Error updating student entry.");
+            return response.json();
+        })
+        .then(data => {
+            let inputs = record.rowElement.querySelectorAll("input[type='checkbox']");
+            inputs.forEach(input => input.disabled = true);
+            return data;
+        });
+    });
 
-    .then(response => response.json())
-
-    .then(data => {
-
-        console.log(data);
-
+    Promise.all(requests)
+    .then(results => {
         alert("Saved Successfully");
         location.reload();
-
-        let buttons =
-            row.querySelectorAll("button");
-
-        buttons.forEach(function(btn){
-
-            btn.disabled = true;
-
-        });
-
     })
-
     .catch(error => {
-
         console.error(error);
-
-        alert("Error while saving");
-
+        alert("An error occurred during multi-record updates.");
+    })
+    .finally(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fas fa-cloud-upload-alt"></i> Submit Decisions`;
     });
 }
-
 </script>
 
 </body>

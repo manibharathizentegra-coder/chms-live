@@ -6,3 +6,4 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('church.urls')), # This connects your church app
 ]
+

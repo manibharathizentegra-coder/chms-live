@@ -1,0 +1,454 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP</title>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            background: #ffffff;
+        }
+
+        /* ============ LEFT PANEL ============ */
+        .left-panel {
+            flex: 1.1;
+            background: #f0f4ff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative soft background shapes */
+        .bg-shape-1 {
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(74,107,197,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            top: -150px;
+            left: -150px;
+            z-index: 0;
+        }
+
+        .bg-shape-2 {
+            position: absolute;
+            width: 350px;
+            height: 350px;
+            background: radial-gradient(circle, rgba(255,107,107,0.06) 0%, transparent 70%);
+            border-radius: 50%;
+            bottom: -100px;
+            right: -80px;
+            z-index: 0;
+        }
+
+        .bg-shape-3 {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(46,204,113,0.05) 0%, transparent 70%);
+            border-radius: 50%;
+            top: 30%;
+            right: 10%;
+            z-index: 0;
+        }
+
+        .illustration-wrapper {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .illustration-wrapper svg {
+            width: 100%;
+            height: auto;
+            max-height: 520px;
+            filter: drop-shadow(0 20px 40px rgba(0,0,0,0.06));
+        }
+
+        /* ============ RIGHT PANEL ============ */
+        .right-panel {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #ffffff;
+            padding: 40px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .login-card h2 {
+            font-size: 34px;
+            color: #1e2a4a;
+            margin-bottom: 6px;
+            font-weight: 800;
+        }
+
+        .login-card .subtitle {
+            color: #8d99ae;
+            font-size: 14px;
+            margin-bottom: 35px;
+            line-height: 1.6;
+        }
+
+        /* Error Message overrides to fit theme perfectly while keeping your inline style logic */
+        .error-box {
+            background: #fff5f5;
+            border-left: 4px solid #ff6b6b;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: shake 0.5s ease;
+        }
+
+        .error-box i {
+            font-size: 18px;
+            color: #ff6b6b;
+        }
+
+        .error-box p {
+            margin: 0 !important;
+            color: #d63031 !important;
+            font-size: 14px !important;
+            font-weight: 600 !important;
+        }
+
+        /* Input Group */
+        .input-group {
+            position: relative;
+            margin-bottom: 22px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e2a4a;
+            margin-bottom: 8px;
+        }
+
+        .input-group i.field-icon {
+            position: absolute;
+            right: 18px;
+            top: 44px;
+            color: #a0aec0;
+            font-size: 18px;
+            transition: color 0.3s;
+        }
+
+        .input-group input[type="text"] {
+            width: 100%;
+            padding: 15px 48px 15px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            background: #f8fafc;
+            transition: all 0.3s ease;
+            color: #1e2a4a;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .input-group input[type="text"]::placeholder {
+            color: #b0bec5;
+            font-weight: 400;
+            letter-spacing: 0;
+        }
+
+        .input-group input[type="text"]:focus {
+            border-color: #4a6bc5;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(74, 107, 197, 0.1);
+        }
+
+        .input-group:focus-within i.field-icon {
+            color: #4a6bc5;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #4a6bc5 0%, #3a5199 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(74, 107, 197, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(74, 107, 197, 0.5);
+        }
+
+        .btn-submit:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-submit i {
+            font-size: 16px;
+            transition: transform 0.3s;
+        }
+
+        .btn-submit:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Footer */
+        .form-footer {
+            margin-top: 28px;
+            text-align: center;
+            font-size: 13px;
+            color: #8d99ae;
+        }
+
+        .form-footer i {
+            color: #2ecc71;
+            margin-right: 4px;
+        }
+
+        /* ============ ANIMATIONS ============ */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .pulsing {
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        .pulsing-delay {
+            animation: pulse 3s ease-in-out infinite 1.5s;
+        }
+
+        /* ============ RESPONSIVE ============ */
+        @media screen and (max-width: 1024px) {
+            body {
+                flex-direction: column;
+            }
+
+            .left-panel {
+                flex: none;
+                min-height: 380px;
+                padding: 25px 20px;
+            }
+
+            .illustration-wrapper {
+                max-width: 350px;
+            }
+
+            .right-panel {
+                padding: 35px 20px;
+            }
+
+            .login-card h2 {
+                font-size: 28px;
+            }
+        }
+
+        @media screen and (max-width: 580px) {
+            .left-panel {
+                min-height: 300px;
+                padding: 20px 15px;
+            }
+
+            .illustration-wrapper {
+                max-width: 250px;
+            }
+
+            .login-card h2 {
+                font-size: 24px;
+            }
+
+            .right-panel {
+                padding: 25px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============ LEFT PANEL ============ -->
+    <div class="left-panel">
+
+        <!-- Decorative background shapes -->
+        <div class="bg-shape-1"></div>
+        <div class="bg-shape-2"></div>
+        <div class="bg-shape-3"></div>
+
+        <!-- Custom OTP / Security Verification Illustration -->
+        <div class="illustration-wrapper">
+            <svg viewBox="0 0 500 480" xmlns="http://www.w3.org/2000/svg">
+
+                <!-- Ground Shadow -->
+                <ellipse cx="250" cy="420" rx="140" ry="12" fill="#d5dde8" opacity="0.6"/>
+
+                <!-- Circular halos behind phone -->
+                <circle cx="250" cy="240" r="130" fill="white" opacity="0.3"/>
+                <circle cx="250" cy="240" r="100" fill="white" opacity="0.6"/>
+
+                <!-- ===== SMARTPHONE ===== -->
+                <!-- Phone Body -->
+                <rect x="180" y="100" width="140" height="280" rx="20" fill="#2c3e50"/>
+                <!-- Screen -->
+                <rect x="190" y="115" width="120" height="250" rx="10" fill="#f8fafc"/>
+                <!-- Speaker -->
+                <rect x="235" y="106" width="30" height="4" rx="2" fill="#555"/>
+                <!-- Home Button -->
+                <circle cx="250" cy="373" r="5" fill="#555"/>
+
+                <!-- Phone UI elements -->
+                <rect x="205" y="140" width="90" height="10" rx="4" fill="#e2e8f0"/>
+                <rect x="205" y="160" width="60" height="8" rx="4" fill="#e2e8f0"/>
+                
+                <!-- Password Dots on Screen -->
+                <circle cx="215" cy="200" r="8" fill="#4a6bc5"/>
+                <circle cx="240" cy="200" r="8" fill="#4a6bc5"/>
+                <circle cx="265" cy="200" r="8" fill="#4a6bc5"/>
+                <circle cx="290" cy="200" r="8" fill="#e2e8f0"/>
+
+                <rect x="205" y="240" width="90" height="20" rx="5" fill="#4a6bc5" opacity="0.1"/>
+                <rect x="205" y="270" width="90" height="20" rx="5" fill="#4a6bc5" opacity="0.1"/>
+
+                <rect x="205" y="320" width="90" height="25" rx="8" fill="#2ecc71"/>
+
+                <!-- ===== FLOATING SHIELD (Security) ===== -->
+                <g transform="translate(280, 230)" class="pulsing">
+                    <!-- Left side of shield -->
+                    <path d="M45 0 L90 15 L90 60 C90 90 70 115 45 130 C20 115 0 90 0 60 L0 15 Z" fill="#4a6bc5"/>
+                    <!-- Right side of shield (shadow) -->
+                    <path d="M45 0 L45 130 C20 115 0 90 0 60 L0 15 Z" fill="#3a5199"/>
+                    <!-- Inner white circle -->
+                    <circle cx="45" cy="60" r="24" fill="white"/>
+                    <!-- Green Checkmark -->
+                    <path d="M34 60 L42 68 L58 48" fill="none" stroke="#2ecc71" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                </g>
+
+                <!-- ===== FLOATING MAIL/MESSAGE BUBBLE ===== -->
+                <g transform="translate(90, 160)" class="pulsing-delay">
+                    <rect x="0" y="0" width="90" height="65" rx="12" fill="#ff6b6b"/>
+                    <!-- Notification pointer -->
+                    <polygon points="70,64 85,64 85,80" fill="#ff6b6b"/>
+                    <!-- Envelope lines -->
+                    <path d="M15 20 L45 42 L75 20" fill="none" stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <rect x="15" y="18" width="60" height="35" fill="none" stroke="white" stroke-width="5" rx="4"/>
+                    <!-- Small notification badge -->
+                    <circle cx="85" cy="5" r="10" fill="#f39c12"/>
+                    <text x="81" y="9" fill="white" font-size="12" font-family="Arial" font-weight="bold">1</text>
+                </g>
+
+                <!-- ===== DECORATIVE PARTICLES ===== -->
+                <circle cx="140" cy="300" r="6" fill="#f39c12" opacity="0.6" class="pulsing"/>
+                <circle cx="380" cy="180" r="8" fill="#2ecc71" opacity="0.6" class="pulsing-delay"/>
+                <rect x="360" y="110" width="10" height="10" rx="2" fill="#4a6bc5" opacity="0.4" transform="rotate(45 365 115)" class="pulsing"/>
+                <path d="M120 100 L125 115 L140 120 L125 125 L120 140 L115 125 L100 120 L115 115 Z" fill="#ff6b6b" opacity="0.3" class="pulsing-delay"/>
+
+            </svg>
+        </div>
+    </div>
+
+    <!-- ============ RIGHT PANEL ============ -->
+    <div class="right-panel">
+        <div class="login-card">
+
+            <h2>OTP Verification</h2>
+            <p class="subtitle">We've sent a one-time password to your email. Please enter it below to verify your identity.</p>
+
+            <!-- YOUR EXACT LOGIC: Error Message -->
+            {% if error %}
+            <div class="error-box">
+                <i class="fas fa-exclamation-triangle"></i>
+                <!-- Your original inline style is preserved, but smoothly overridden by CSS -->
+                <p style="color:red;">
+                    {{ error }}
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- YOUR EXACT LOGIC: Form, CSRF, input, submit -->
+            <form method="post">
+                {% csrf_token %}
+
+                <div class="input-group">
+                    <label>Secure OTP</label>
+                    <input
+                        type="text"
+                        name="otp"
+                        placeholder="Enter OTP"
+                        required
+                    >
+                    <!-- Security shield icon -->
+                    <i class="fas fa-shield-alt field-icon"></i>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    Verify OTP <i class="fas fa-check-circle"></i>
+                </button>
+
+            </form>
+
+            <p class="form-footer">
+                <i class="fas fa-shield-check"></i> Identity successfully protected
+            </p>
+
+        </div>
+    </div>
+
+</body>
+</html>

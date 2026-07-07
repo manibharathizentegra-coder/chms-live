@@ -1,239 +1,545 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Exam Notification Mail</title>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-
-        body{
-            font-family:Arial;
-            background:#f4f6f9;
-            padding:20px;
+        /* Base Styling & Smooth Layout */
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            padding: 40px 20px;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container{
-            background:white;
-            max-width:800px;
-            margin:auto;
-            padding:25px;
-            border-radius:10px;
+        /* Top Navigation & Hamburger Button */
+        .top-nav {
+            max-width: 650px;
+            margin: 0 auto 20px auto;
         }
 
-        .form-group{
-            margin-bottom:15px;
+        .menu-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            background: #ffffff;
+            color: #64748b;
+            border-radius: 50%;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.25s ease;
+            cursor: pointer;
         }
 
-        label{
-            display:block;
-            margin-bottom:5px;
-            font-weight:bold;
+        .menu-btn:hover {
+            color: #4f46e5;
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         }
 
-        select,input,textarea{
-            width:100%;
-            padding:10px;
-            border:1px solid #ccc;
-            border-radius:5px;
-            box-sizing:border-box;
+        .menu-btn i {
+            font-size: 16px;
         }
 
-        textarea{
-            height:150px;
+        /* Slide-out Sidebar Navigation Drawers */
+        .mobile-sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #ffffff;
+            z-index: 1000;
+            box-shadow: 4px 0 25px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
         }
 
-        button{
-            background:#2c3e50;
-            color:white;
-            padding:12px 20px;
-            border:none;
-            border-radius:5px;
-            cursor:pointer;
+        .mobile-sidebar.active {
+            left: 0;
         }
 
-@media screen and (max-width:768px){
+        .sidebar-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f1f5f9;
+        }
 
-    .filters{
-        flex-direction:column;
-    }
+        .sidebar-header h3 {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            letter-spacing: -0.01em;
+        }
 
-    select,
-    input,
-    button{
-        width:100%;
-    }
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s ease;
+        }
 
-    table{
-        font-size:14px;
-    }
+        .close-btn:hover {
+            color: #ef4444;
+        }
 
-    th,td{
-        padding:8px;
-    }
-}
+        .sidebar-menu {
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
 
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #475569;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14.5px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-menu a:hover {
+            background: #f1f5f9;
+            color: #4f46e5;
+        }
+
+        /* Highlight Active Menu Item */
+        .sidebar-menu a.active {
+            background: #e0e7ff;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        .sidebar-menu a i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid #f1f5f9;
+        }
+
+        .mobile-logout {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: #ef4444;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 14.5px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-logout:hover {
+            background: #fef2f2;
+        }
+
+        /* Dim Backdrop Overlay */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.3);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Pristine White Modern Form Card */
+        .container {
+            background: #ffffff;
+            max-width: 650px;
+            margin: auto;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+        }
+
+        /* Premium Header Block */
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 24px;
+            margin-bottom: 30px;
+        }
+
+        .header-icon-box {
+            width: 48px;
+            height: 48px;
+            background: #e0e7ff;
+            color: #4f46e5;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .form-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+
+        /* Inputs & Labels Custom Layout */
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-family: inherit;
+            font-size: 14.5px;
+            color: #334155;
+            background-color: #ffffff;
+            transition: all 0.2s ease;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        textarea {
+            height: 140px;
+            resize: vertical;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Interactive Action Submit Button */
+        .submit-btn {
+            width: 100%;
+            background: #4f46e5;
+            color: white;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.01em;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+
+        .submit-btn:hover {
+            background: #4338ca;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Mobile Layout Optimization */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 20px 12px;
+            }
+            .container {
+                padding: 24px 20px;
+                border-radius: 12px;
+            }
+            .form-header {
+                gap: 12px;
+                padding-bottom: 18px;
+                margin-bottom: 22px;
+            }
+            .header-icon-box {
+                width: 42px;
+                height: 42px;
+                font-size: 18px;
+            }
+            .form-header h2 {
+                font-size: 19px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 
-    <h2>Send Exam Notification</h2>
+<div class="mobile-sidebar" id="mobileSidebar">
+    <div class="sidebar-header">
+        <h3>Teacher Portal</h3>
+        <button class="close-btn" onclick="closeSidebar()" aria-label="Close Navigation">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
+    <div class="sidebar-menu">
+        <a href="/teacher-dashboard/">
+            <i class="fas fa-chart-line"></i> Dashboard
+        </a>
+        <a href="/profile/">
+            <i class="fas fa-user-tie"></i> Profile
+        </a>
+        <a href="/my-classes/">
+            <i class="fas fa-school"></i> My Classes
+        </a>
+        <a href="/students/">
+            <i class="fas fa-calendar-check"></i> Attendance
+        </a>
+        <a href="/student-marks/">
+            <i class="fas fa-file-signature"></i> Student Marks
+        </a>
+        <a href="/send-mail/" class="active">
+            <i class="fas fa-envelope-open-text"></i> Send Mail
+        </a>
+        <a href="/promote-students/">
+            <i class="fas fa-user-graduate"></i> Promote Students
+        </a>
+    </div>
+
+    <div class="sidebar-footer">
+        <a href="/logout/" class="mobile-logout">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </div>
+</div>
+
+<div class="top-nav">
+    <button class="menu-btn" onclick="openSidebar()" title="Open Navigation" aria-label="Open Navigation">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<div class="container">
+    <div class="form-header">
+        <div class="header-icon-box">
+            <i class="fas fa-envelope-open-text"></i>
+        </div>
+        <div>
+            <h2>Send Exam Notification</h2>
+        </div>
+    </div>
 
     <div class="form-group">
         <label>Academic Year</label>
-
-        <select id="academicYear">
-
-            <option value="">
-                Select Academic Year
-            </option>
+        <select id="academic_year" name="academic_year">
+            <option value="">Select Academic Year</option>
 
             {% for year in academic_years %}
-            <option value="{{ year }}">
+            <option value="{{ year }}"
+                {% if year == selected_year %}selected{% endif %}>
                 {{ year }}
             </option>
             {% endfor %}
-
         </select>
     </div>
 
     <div class="form-group">
         <label>Grade</label>
-
-        <select id="grade">
-
+        <select id="grade" name="grade">
             <option value="">Select Grade</option>
 
-            <option value="A">Grade A</option>
-            <option value="B">Grade B</option>
-            <option value="C">Grade C</option>
-            <option value="D">Grade D</option>
-            <option value="E">Grade E</option>
-
+            {% for student in students %}
+            <option value="{{ student.Class_Grade }}"
+                {% if student.Class_Grade == selected_grade %}selected{% endif %}>
+                {{ student.Class_Grade }}
+            </option>
+            {% endfor %}
         </select>
     </div>
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label>Exam Date</label>
-
-        <input
-            type="date"
-            id="examDate"
-        >
+        <input type="date" id="examDate">
     </div>
 
     <div class="form-group">
         <label>Exam Time</label>
-
-        <input
-            type="time"
-            id="examTime"
-        >
-    </div>
+        <input type="time" id="examTime">
+    </div> -->
 
     <div class="form-group">
+        <label>Notification Type</label>
 
+        <select id="notification_type">
+
+            <option value="">Select Notification</option>
+
+            <option value="general_notification">
+                General Notification
+            </option>
+
+            <option value="exam_notification">
+                Exam Notification
+            </option>
+
+            <option value="class_cancellation">
+                Class Cancellation
+            </option>
+
+            <option value="prayer_meeting">
+                Prayer Meeting
+            </option>
+
+            <option value="class_reminder">
+                Class Reminder
+            </option>
+
+            <option value="church_event">
+                Church Event
+            </option>
+
+            <option value="promotion_notification">
+                Student Promotion
+            </option>
+
+            <option value="homework_assignment">
+                Homework / Assignment
+            </option>
+
+            <option value="christmas_notification">
+                Christmas Celebration
+            </option>
+
+            <option value="easter_notification">
+                Easter Celebration
+            </option>
+
+        </select>
+
+    </div>
+    <div class="form-group">
         <label>Mail Subject</label>
-
-        <input
-            type="text"
-            id="subject"
-            placeholder="Enter Subject"
-        >
-
+        <input type="text" id="subject" placeholder="Enter Subject">
     </div>
 
     <div class="form-group">
-
         <label>Message</label>
-
-        <textarea
-            id="message"
-            placeholder="Type Message"
-        ></textarea>
-
+        <textarea id="message" placeholder="Type Message"></textarea>
     </div>
 
-    <button onclick="sendMail()">
-        Send Mail
-    </button>
-
+    <button class="submit-btn" onclick="sendMail()">Send Mail</button>
 </div>
 
 <script>
+// Sidebar Toggle Controller Rules
+function openSidebar() {
+    document.getElementById("mobileSidebar").classList.add("active");
+    document.getElementById("overlay").classList.add("active");
+}
 
-function sendMail(){
+function sendMail() {
 
-    let academicYear =
-        document.getElementById("academicYear").value;
+    let notificationType = document.getElementById("notification_type").value;
+    let academicYear = document.getElementById("academic_year").value;
+    let grade = document.getElementById("grade").value;
+    let subject = document.getElementById("subject").value;
+    let message = document.getElementById("message").value;
 
-    let grade =
-        document.getElementById("grade").value;
-
-    let examDate =
-        document.getElementById("examDate").value;
-
-    let examTime =
-        document.getElementById("examTime").value;
-
-    let subject =
-        document.getElementById("subject").value;
-
-    let message =
-        document.getElementById("message").value;
-
-    if(
-        !academicYear ||
-        !grade ||
-        !examDate ||
-        !examTime ||
-        !subject ||
-        !message
-    ){
-        alert("Please fill all fields");
+    if (!notificationType || !academicYear || !grade || !subject || !message) {
+        alert("Please fill all fields.");
         return;
     }
 
-    fetch("/send-grade-mail/",{
-
-        method:"POST",
-
-        headers:{
-            "Content-Type":"application/json"
+    fetch("/send-grade-mail/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
         },
-
-        body:JSON.stringify({
-
-            academic_year:academicYear,
-            grade:grade,
-            exam_date:examDate,
-            exam_time:examTime,
-            subject:subject,
-            message:message
-
+        body: JSON.stringify({
+            notification_type: notificationType,
+            academic_year: academicYear,
+            grade: grade,
+            subject: subject,
+            message: message
         })
-
     })
-
     .then(response => response.json())
-
     .then(data => {
 
-        alert(
-            "Mail sent to " +
-            data.count +
-            " students"
-        );
+        // Popup
+        Swal.fire({
+            icon: "success",
+            title: "Mail Sent Successfully",
+            text: "Notification has been sent to " + data.count + " students.",
+            confirmButtonColor: "#4f46e5"
+        });
 
-        document.getElementById("academicYear").value = "";
-        document.getElementById("grade").value = "";
-        document.getElementById("examDate").value = "";
-        document.getElementById("examTime").value = "";
+        // Clear all fields
+        document.getElementById("notification_type").selectedIndex = 0;
+        // document.getElementById("academic_year").selectedIndex = 0;
+        // document.getElementById("grade").selectedIndex = 0;
         document.getElementById("subject").value = "";
         document.getElementById("message").value = "";
 
     })
+    .catch(error => {
+        console.error(error);
+        alert("❌ Error sending mail.");
+    });
 
 }
 

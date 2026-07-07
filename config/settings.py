@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+import dj_database_url
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l4p1qv2@n-mj1+kb_#kzc5ea*)h(eoe7$jg2072w@9p0c8rnf6'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-l4p1qv2@n-mj1+kb_#kzc5ea*)h(eoe7$jg2072w@9p0c8rnf6')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -40,10 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -107,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -126,6 +133,26 @@ EMAIL_PORT = 587
 
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = "manikandansjobzen@gmail.com"
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', "manikandansjobzen@gmail.com")
 
-EMAIL_HOST_PASSWORD = "duiw yaxt gbwb aerv"
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', "duiw yaxt gbwb aerv")
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+# This tells Django to look inside your church app for a folder named 'static'
+STATICFILES_DIRS = [
+    BASE_DIR / 'church' / 'static',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.dev",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://shifting-curvy-wrist.ngrok-free.dev",
+]
