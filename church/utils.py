@@ -63,7 +63,7 @@ def send_sg_email(subject, message, to_emails, html_content=None):
     }
     
     if html_content:
-        data["content"].insert(0, {"type": "text/html", "value": html_content})
+        data["content"].append({"type": "text/html", "value": html_content})
         
     try:
         response = requests.post(url, json=data, headers=headers)
