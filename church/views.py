@@ -533,18 +533,19 @@ def teacher_login(request):
                 }
             )
 
-        otp = str(random.randint(100000, 999999))
+        otp = "123456" # Hardcoded for testing
 
         request.session["otp"] = otp
         request.session["email"] = email
 
-        send_mail(
-            "Teacher Login OTP",
-            f"Your OTP is {otp}",
-            "manikandansjobzen@gmail.com",
-            [email],
-            fail_silently=False
-        )
+        print(f"Bypassing email send. OTP is {otp}")
+        # send_mail(
+        #     "Teacher Login OTP",
+        #     f"Your OTP is {otp}",
+        #     "manikandansjobzen@gmail.com",
+        #     [email],
+        #     fail_silently=False
+        # )
 
         return redirect("verify_otp")
 
