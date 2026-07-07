@@ -33,3 +33,32 @@ def IntiateOauth():
         print("Existed token")
         return  oauth.refresh_token
 
+
+def send_resend_email(subject, message, to_emails, html_content=None):
+    import requests
+    import json
+    
+    api_key = "re_XCqBnfPS_8LkgEgd5jku98YP8GPY9wBpo"
+    url = "https://api.resend.com/emails"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    data = {
+        "from": "onboarding@resend.dev",
+        "to": to_emails,
+        "subject": subject,
+        "text": message
+    }
+    
+    if html_content:
+        data["html"] = html_content
+        
+    try:
+        response = requests.post(url, json=data, headers=headers)
+        print("Resend API Response:", response.text)
+        return response.status_code == 200
+    except Exception as e:
+        print("Resend Error:", e)
+        return False

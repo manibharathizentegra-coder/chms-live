@@ -11,6 +11,7 @@ import requests
 from .services import create_attendance_record
 from .services import create_marks_record
 from django.core.mail import send_mail
+from .utils import send_resend_email
 from django.views.decorators.csrf import csrf_exempt
 from .services import create_promote_record
 from .services import create_promote_record, update_student_grade
@@ -321,25 +322,18 @@ def send_grade_mail(request):
                 }
             )
 
-            email = EmailMultiAlternatives(
-                subject,
-                final_message,
-                settings.EMAIL_HOST_USER,
-                [email_address]
+            success = send_resend_email(
+                subject=subject,
+                message=final_message,
+                to_emails=[email_address],
+                html_content=html_content
             )
 
-            email.attach_alternative(
-                html_content,
-                "text/html"
-            )
-
-            try:
-                email.send()
+            if success:
                 print("Mail sent:", email_address)
                 send_count += 1
-
-            except Exception as e:
-                print("MAIL ERROR:", e)
+            else:
+                print("MAIL ERROR: Resend API failed")
 
             # send_count += 1
 
@@ -533,19 +527,16 @@ def teacher_login(request):
                 }
             )
 
-        otp = "123456" # Hardcoded for testing
+        otp = str(random.randint(100000, 999999))
 
         request.session["otp"] = otp
         request.session["email"] = email
 
-        print(f"Bypassing email send. OTP is {otp}")
-        # send_mail(
-        #     "Teacher Login OTP",
-        #     f"Your OTP is {otp}",
-        #     "manikandansjobzen@gmail.com",
-        #     [email],
-        #     fail_silently=False
-        # )
+        send_resend_email(
+            subject="Teacher Login OTP",
+            message=f"Your OTP is {otp}",
+            to_emails=[email]
+        )
 
         return redirect("verify_otp")
 
@@ -847,17 +838,10 @@ Teacher
 
     if email_list:
 
-        send_mail(
-
-            subject,
-
-            final_message,
-
-            "manikandansjobzen@gmail.com",
-
-            email_list,
-
-            fail_silently=False
+        send_resend_email(
+            subject=subject,
+            message=final_message,
+            to_emails=email_list
         )
 
         print(
